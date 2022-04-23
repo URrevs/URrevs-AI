@@ -43,7 +43,7 @@ jobs:
       with:
         heroku_api_key: ${{ secrets.HEROKU_AUTH_TOKEN }}
         heroku_email: ${{ secrets.MAIL }}
-        heroku_app_name: ${{ secrets.APP_NAME }}
+        heroku_app_name: "urrevs-ai-dev"
         appdir: "recommenderApi"
 
   mergeToMain:
