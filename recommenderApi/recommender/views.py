@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from recommenderApi import settings
+import json
 
 similiar_phones = [
     '6256a7575f87fa90093a4bd2', 
@@ -73,7 +74,7 @@ def get_similiar_phones(request, phoneId):
 def get_review_grade(request):
     if request.method == 'POST':
         if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
-            reqBody = request.POST
+            reqBody = json.loads(request.body.decode('utf-8'))
             try:
                 phoneRevPros   = reqBody['phoneRevPros']
                 phoneRevCons   = reqBody['phoneRevCons']
