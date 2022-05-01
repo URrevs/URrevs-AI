@@ -32,6 +32,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', os.getenv("API_HOST")]
 
 INSTALLED_APPS = [
     'recommender',
+    'gamification',
+    'similarPhones',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
