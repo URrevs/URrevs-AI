@@ -19,15 +19,18 @@ class FileData:
             self.sheet_names, self.file_path = [], ''
             if self.alert: print("Error: File not found")
 
-    def load_sheet(self, sheet_name: str) -> Tuple[pd.DataFrame, bool]:
+    def load_sheet(self, sheet_name: str, index: str = '') -> Tuple[pd.DataFrame, bool]:
         '''
             function to load sheet from file
 
-            parameters: sheet_name
+            parameters: sheet_name, index
             output: return dataframe of sheet and boolean value represent if sheet is loaded successfully
         '''
         try:
-            self.data = pd.read_excel(self.file_path, sheet_name, na_values='n/a')
+            if index != '':
+                self.data = pd.read_excel(self.file_path, sheet_name, na_values='n/a', index_col=index)
+            else:
+                self.data = pd.read_excel(self.file_path, sheet_name, na_values='n/a')
             return self.data, True
         except:
             if self.alert: print("Error: Sheet not found")
@@ -59,6 +62,6 @@ class FileData:
         return self.file_name
 
 # fh = FileData('mobiles.xlsx')
-# # print(fh.get_sheet_names())
+# print(fh.get_sheet_names())
 # data = fh.load_sheet('Sheet1')
 # print(data.head(10))

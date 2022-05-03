@@ -28,7 +28,7 @@ class ExtractFeatures:
             parameters: sentence
             output: return the lowercase version from this sentence
         '''
-        string: str = string.replace(' ', '')
+        string = string.replace(' ', '')
         return string.lower()
 
     def isNumeric(self, string: str) -> bool:
@@ -77,7 +77,7 @@ class ExtractFeatures:
         '''
         num, unit = self.uniString(num), self.uniString(unit)
         strings: list = num.split(unit)
-        temp: str = strings[0].replace(' ', '')[-1::-1]
+        temp: str = strings[0][-1::-1]
         counter = 1
         while counter < len(temp):
             if self.isNumeric(temp[: counter]):
@@ -94,3 +94,15 @@ class ExtractFeatures:
 # print(model.uniString('الموبايل بيه واجهة جميلة'))
 # print(model.unit_Number())
 # print(model.dateAsInteger(dt(2022, 5, 1)))
+
+# def encode(data: pd.DataFrame, type: str = 'OneHot') -> pd.DataFrame:
+#     model = OneHotEncoder() if type == 'OneHot' else LabelEncoder()
+#     newdata = pd.DataFrame(model.fit_transform(data.values.reshape(-1, 1)).toarray(), 
+#                     columns=model.categories_[0], index=data.index)
+#     return newdata
+
+# data = FileData('Graduation-Project/mobiles.xlsx')
+# # print(data.get_sheet_names())
+# data, check = data.load_sheet('Sheet1', index='_id')
+# # print(data.columns)
+# print(encode(data.loc[:, 'company']))
