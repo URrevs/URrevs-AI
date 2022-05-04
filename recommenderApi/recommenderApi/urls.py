@@ -18,5 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include("recommender.urls"))
+    path('', include("recommender.urls")),
+    path('', include("gamification.urls")),
+    path('', include("similarPhones.urls")),
 ]
