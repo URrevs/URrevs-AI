@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-q5mgy-b5#75ag8@^-m99vf1+@l2@%-het)y6_mp6llsorr=y8r
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', os.getenv("API_HOST"), 'https://urrevs-ai-dev.herokuapp.com']
-
+CSRF_TRUSTED_ORIGINS = ['https://urrevs-ai-dev.herokuapp.com']
 
 # Application definition
 
