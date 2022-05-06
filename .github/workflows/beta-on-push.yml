@@ -41,8 +41,8 @@ jobs:
     - name: Git deploy to Heroku
       uses: akhileshns/heroku-deploy@v3.12.12
       with:
-        heroku_api_key: "f0c4e916-224f-42eb-9b2d-47c45d27876a"
-        heroku_email: ${{ secrets.MAIL }}
+        heroku_api_key: "5a5ff953-85c0-4475-9bc0-63b601f7dd5c"
+        heroku_email: "heroku.general@gmail.com"
         heroku_app_name: "urrevs-ai-dev"
         appdir: "recommenderApi"
 
