@@ -57,9 +57,7 @@ class ReviewContentRecommender:
         '''
         if file_name == '':
             file_name = 'reviews.xlsx'
-        nltk.data.path.append('./nltk_data/')
         self.load_data(file_name)
-        # print(list(self.data.columns))
         self.prepare_data()
         self.scale_data()
         dump(self.data, open(path, 'wb'))
