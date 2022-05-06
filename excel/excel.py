@@ -64,12 +64,3 @@ class excel:
           
               
      
-
-ex=excel('data mobiles reviews.xlsx')
-
-
-df_marks = pd.DataFrame({'name': ['Somu', 'Kiku', 'Amol', 'Lini'],
-     'physics': [68, 74, 77, 78],
-     'chemistry': [84, 56, 73, 69],
-     'math': [78, 88, 82, 87]})
-ex.remove_sheet('aa')
