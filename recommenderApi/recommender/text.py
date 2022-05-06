@@ -10,6 +10,7 @@ class TextFeatureExtraction:
             output: Nothing
         '''
         self.alert = alert
+        nltk.data.path.append(f'{os.getcwd()}\\nltk_data')
         # nltk.download('punkt')
         # nltk.download("stopwords")
         return
@@ -22,9 +23,9 @@ class TextFeatureExtraction:
             output: the count of words in sentence without the stopwords
         '''
         tokens: list = word_tokenize(sentence)
-        if not os.path.isfile('stopwords.pkl'):
+        if not os.path.isfile('recommender/static/data/stopwords.pkl'):
             self.updateStopWords()
-        stopwords: list = load(open('stopwords.pkl', 'rb'))
+        stopwords: list = load(open('recommender/static/data/stopwords.pkl', 'rb'))
         
         count: int = 0
         for token in tokens:
@@ -42,7 +43,7 @@ class TextFeatureExtraction:
         more_stopwords: list = ['آمين', 'أب', 'أخ', 'أفعل', 'أفعله', 'ؤلاء', 'إل', 'إم', 'ات', 'اتان', 'ارتد', 'ان', 'انفك', 'برح', 'تان', 'تبد', 'تحو', 'تعل', 'حد', 'حم', 'حي', 'خب', 'ذار', 'سيما', 'صه', 'ظل', 'ظن', 'عد', 'قط', 'مر', 'مكان', 'مكانكن', 'نب', 'هات', 'هب', 'واها', 'وراء', 'ال']
         if len(lstStopWords) == 0:
             lstStopWords = stopwords.words("English") + stopwords.words("Arabic") + more_stopwords
-        dump(lstStopWords, open('stopwords.pkl', 'wb'))
+        dump(lstStopWords, open('recommender/static/data/stopwords.pkl', 'wb'))
 
     def apply_Tokenization(self, data: pd.DataFrame, columns: list = [], inplace: bool = False) -> pd.DataFrame:
         '''
@@ -73,9 +74,9 @@ class TextFeatureExtraction:
             parameters: the sentences
             output: the TF-IDF of the sentences and the vectorizer model
         '''
-        if not os.path.isfile('stopwords.pkl'):
+        if not os.path.isfile('recommender/static/data/stopwords.pkl'):
             self.updateStopWords()
-        stopwords: list = load(open('stopwords.pkl', 'rb'))
+        stopwords: list = load(open('recommender/static/data/stopwords.pkl', 'rb'))
         
         vectorizer = TfidfVectorizer(stop_words= stopwords)
         matrix = vectorizer.fit_transform(sentences)
