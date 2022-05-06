@@ -10,8 +10,9 @@ class TextFeatureExtraction:
             output: Nothing
         '''
         self.alert = alert
-        nltk.download('punkt')
-        nltk.download("stopwords")
+        nltk.data.path.append('./nltk_data/')
+        # nltk.download('punkt')
+        # nltk.download("stopwords")
         return
 
     def eliminateStopWords(self, sentence: str) -> int:
