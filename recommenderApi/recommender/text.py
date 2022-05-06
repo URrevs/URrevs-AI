@@ -10,7 +10,6 @@ class TextFeatureExtraction:
             output: Nothing
         '''
         self.alert = alert
-        nltk.data.path.append('./nltk_data/')
         # nltk.download('punkt')
         # nltk.download("stopwords")
         return

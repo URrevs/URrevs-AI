@@ -1,4 +1,4 @@
-from recommenderApi.imports import NearestNeighbors, os, pd, Tuple, MinMaxScaler, dump, load
+from recommenderApi.imports import NearestNeighbors, os, pd, Tuple, MinMaxScaler, dump, load, nltk
 from recommenderApi.file import FileData
 from recommender.text import TextFeatureExtraction
 
@@ -57,6 +57,7 @@ class ReviewContentRecommender:
         '''
         if file_name == '':
             file_name = 'reviews.xlsx'
+        nltk.data.path.append('./nltk_data/')
         self.load_data(file_name)
         # print(list(self.data.columns))
         self.prepare_data()
