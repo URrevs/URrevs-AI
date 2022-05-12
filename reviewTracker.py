@@ -2,7 +2,7 @@ from pickle import dump, load
 import pandas as pd
 from pyparsing import Or
 
-
+userDic={}
 def enum(**enums):
     return type('Enum', (), enums)
 
@@ -61,6 +61,7 @@ def calculateUniqness():
 
 def addTrackers(df: pd.DataFrame, trackers: list, trackerType: Tracker, identifier: Identifier):
     for tracker in trackers:
+        userDic[tracker['id']]=1
         if tracker['review'][0] != str(Identifier.PRODUCT) and tracker['review'][0] != str(Identifier.COMPANY):
             tracker['review'] = addIdentifierToID(
                 tracker['review'], identifier)
@@ -90,5 +91,16 @@ col = {'user_id': [],
 # Create DataFrame
 df = pd.DataFrame(col)
 
-df=loadDatFarame('user2review.pkl')
+""" df=loadDatFarame('user2review.pkl') """
+df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[1],'rating':[0.1]})
+df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[2],'rating':[0.2]})
+df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[3],'rating':[0.3]})
+df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[4],'rating':[0.4]})
+
+
+df=addTrackers(df,previewTrackers,Tracker.FULL_SCREEN,Identifier.COMPANY)
+print(userDic.keys())
+print(df)
+for user in userDic:
+  updateRateByUser(df,user,-0.1)
 print(df)
