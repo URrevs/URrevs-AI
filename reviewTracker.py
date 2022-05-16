@@ -91,16 +91,4 @@ col = {'user_id': [],
 # Create DataFrame
 df = pd.DataFrame(col)
 
-""" df=loadDatFarame('user2review.pkl') """
-df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[1],'rating':[0.1]})
-df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[2],'rating':[0.2]})
-df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[3],'rating':[0.3]})
-df=addNewRowToDatarame(df,{'user_id':[1],'item_id':[4],'rating':[0.4]})
-
-
-df=addTrackers(df,previewTrackers,Tracker.FULL_SCREEN,Identifier.COMPANY)
-print(userDic.keys())
-print(df)
-for user in userDic:
-  updateRateByUser(df,user,-0.1)
-print(df)
+df=loadDatFarame('user2review.pkl')
