@@ -1,6 +1,7 @@
 from pickle import dump, load
 import pandas as pd
 from pyparsing import Or
+from save_load_data import *
 
 userDic={}
 def enum(**enums):
@@ -12,12 +13,6 @@ Tracker = enum(FULL_SCREEN=0.2, LIKE_OR_DISLIKE=0.3,
 
 Identifier = enum(PRODUCT=0, COMPANY=1)
 
-def loadDatFarame(fileName):
-  df = load(open(fileName, 'rb'))
-  return df
-
-def saveDatFarame(fileName,df):
-  dump(df, open(fileName, 'wb'))
 
 def addIdentifierToID(id, identifier):
     return str(identifier) + id
@@ -92,3 +87,4 @@ col = {'user_id': [],
 df = pd.DataFrame(col)
 
 df=loadDatFarame('user2review.pkl')
+print(df)
