@@ -1,7 +1,5 @@
-from multiprocessing.connection import wait
 from random import choice
 from time import sleep
-from turtle import delay
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import status
