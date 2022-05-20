@@ -32,8 +32,6 @@ CSRF_TRUSTED_ORIGINS = ['https://urrevs-ai-dev.herokuapp.com']
 
 INSTALLED_APPS = [
     'recommender',
-    'gamification',
-    'similarPhones',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
