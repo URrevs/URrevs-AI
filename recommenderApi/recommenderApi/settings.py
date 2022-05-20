@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+from email.policy import default
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q5mgy-b5#75ag8@^-m99vf1+@l2@%-het)y6_mp6llsorr=y8r'
+SECRET_KEY = config('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
+MONGODB_LINK = config('MONGODB_LINK', default='')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', os.getenv("API_HOST"), 'https://urrevs-ai-dev.herokuapp.com']
-CSRF_TRUSTED_ORIGINS = ['https://urrevs-ai-dev.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'https://{config("API_HOST", default="")}']
+CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
 # Application definition
 
@@ -38,8 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_api_key',
 ]
 
 MIDDLEWARE = [
@@ -52,14 +53,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# REST_FRAMEWORK = {
-#     "DEFAULT_PERMISSION_CLASSES": [
-#         "rest_framework_api_key.permissions.HasAPIKey",
-#     ]
-# }
-
 # settings.py
-API_KEY_SECRET = 'secretkey4522'
+API_KEY_SECRET = config('API_KEY_SECRET', default='')
 
 ROOT_URLCONF = 'recommenderApi.urls'
 
