@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+from email.policy import default
 import os
 from pathlib import Path
 from decouple import config
@@ -21,14 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
-MONGODB_LINK = config('MONGODB_LINK')
+DEBUG = config('DEBUG', default=False, cast=bool)
+MONGODB_LINK = config('MONGODB_LINK', default='')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'https://{config("API_HOST")}']
-CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST")}']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'https://{config("API_HOST", default="")}']
+CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
 # Application definition
 
@@ -53,7 +54,7 @@ MIDDLEWARE = [
 ]
 
 # settings.py
-API_KEY_SECRET = config('API_KEY_SECRET')
+API_KEY_SECRET = config('API_KEY_SECRET', default='')
 
 ROOT_URLCONF = 'recommenderApi.urls'
 
