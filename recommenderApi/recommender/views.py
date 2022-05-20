@@ -1,4 +1,7 @@
+from multiprocessing.connection import wait
 from random import choice
+from time import sleep
+from turtle import delay
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import status
@@ -14,16 +17,19 @@ from .fill_db import *
 class Form(forms.Form):
     num = forms.IntegerField(label='Num of Recommendations', min_value=1, max_value=10)
 
-def index(request):
-    data = load(open('data.pkl', 'rb'))
-    users = data['creviews']
-    for user in users:
-        create_Creview(id = user['id'], user = user['user'], company = user['company'], 
-                rate = user['rating'], date = user['time'], pros = user['pros'], cons = user['cons'])
+def train():
+    print('train')
+    sleep(10)
+    print('finish')
 
-    return JsonResponse({
-        'message': 'Success'
-    })
+def index(request):
+    try:
+        print('start')
+        return JsonResponse({'message': 'hello, world !!'})
+    except:
+        pass
+    finally:
+        train()
 #-----------------------------------------------------------------------------------------------------
 def get_reviews(request, userId):
     if request.method == 'GET':
