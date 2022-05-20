@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='')
 DEBUG = config('DEBUG', default=False, cast=bool)
 MONGODB_LINK = config('MONGODB_LINK', default='')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'https://{config("API_HOST", default="")}']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'{config("API_HOST", default="")}']
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
 # Application definition
