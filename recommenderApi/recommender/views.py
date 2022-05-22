@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import *
 from .fill_db import *
-from .mongoDB import *
+# from .mongoDB import *
 from recommender.gamification.grading import Grading, FileData
 
 class Form(forms.Form):
