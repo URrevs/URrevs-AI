@@ -133,3 +133,8 @@ dmypy.json
 .pyre/
 
 deploy.txt
+settings.json
+recommenderApi/.vscode/settings.json
+.gitignore
+recommenderApi/recommender/gamification/data1.pkl
+recommenderApi/recommender/mongoDB.py

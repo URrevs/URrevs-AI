@@ -10,3 +10,6 @@ from nltk import word_tokenize
 from nltk.corpus import stopwords
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
+from pymongo import MongoClient
+import certifi
+from bson import ObjectId

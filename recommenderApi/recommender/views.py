@@ -9,53 +9,110 @@ from recommender.reviewsRecommender import ReviewContentRecommender
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import *
-from pickle import load
 from .fill_db import *
+from .mongoDB import *
+from recommender.gamification.grading import Grading, FileData
 
 class Form(forms.Form):
     num = forms.IntegerField(label='Num of Recommendations', min_value=1, max_value=10)
 
-def train():
-    print('train')
-    sleep(10)
-    print('finish')
-
 def index(request):
-    try:
-        print('start')
-        return JsonResponse({'message': 'hello, world !!'})
-    except:
-        pass
-    finally:
-        train()
+    Grade = Grading()
+    # tfidf = 30
+    tfidf = Grade.calc_TF_IDF([
+        ['مرن وسهل الاستخدام ومليئ بالمزايا التي تسهل عليك استخدامه بأفضل الطرق والاحصائيات التي يعرضها بشكل دوري لمراقبة استخدامك اليومي وسرعة البحث بواسطة سيري'],
+        ['الشاشة سهلة الكسر وغالية جدا وأيضا ذاكرة الصور تنتهي ويجب عليك شراء سعة اضافيه'],
+        ['شاشة بامكانيات عاليه والكثير من التطبيقات التي تجعله مميز '],
+        ['الشاشة سهلة الكسر وغالية جدا وسعة الهاتف للصور والفيديوهات']
+    ])
+    # Grade.generate_transformer(FileData('recommender/gamification/data.xlsx').load_sheet('Sheet1')[0])
+    return JsonResponse({'success': tfidf, 'status': 'ok'})
 #-----------------------------------------------------------------------------------------------------
-def get_reviews(request, userId):
+def start_training(request) -> JsonResponse:
+    '''
+    train the recommender system
+    '''
+    if request.method == 'GET':
+        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+            try:
+                # Async training run here
+                response = {
+                    'message': 'Training started'
+                } 
+                return JsonResponse(response, status=status.HTTP_200_OK)
+            except:
+                error = {
+                    'success': False,
+                    'status': 'process failed'
+                }
+                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            error = {
+                'success': False,
+                'status': 'invalid API Key'
+            }
+            return JsonResponse(error, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        error = {
+            'success': False,
+            'status': 'process failed'
+        }
+        return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
+#-----------------------------------------------------------------------------------------------------
+def get_reviews(request, userId: str) -> JsonResponse:
+    '''
+        Get the reviews of a user
+
+        parameters: the user id
+        output: the reviews of the user
+    '''
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
             reqBody = request.GET
-            round = reqBody.get('round')
-            if round is None:
+            try:
+                round = int(reqBody.get('round'))
+                user = get_user(userId)
+                if user == None:
+                    check, user = check_new_user(userId)
+                    if not check:
+                        error = {
+                            'success': False,
+                            'status': "user doesn't exist"
+                        }
+                        return JsonResponse(error, status=status.HTTP_404_NOT_FOUND)
+                try:
+                    # here get the reviews for the user 'userId' at the round 'round'
+                    # 1 - get the 4 ratios
+                    # 2 - get the questions
+                    # 3 - get the reviews
+                    
+                    response = {
+                        'phoneRevs': [
+                            user.PR
+                        ],
+                        'companyRevs': [
+                            user.CR
+                        ],
+                        'phoneQuestions': [
+                            user.PQ
+                        ],
+                        'companyQuestions': [
+                            user.CQ
+                        ]
+                    }
+                    return JsonResponse(response, status=status.HTTP_200_OK)
+                except:
+                    error = {
+                        'success': False,
+                        'status': 'process failed'
+                    }
+                    return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except:
                 error = {
                     'success': False,
-                    'status':'Missed Round Number'
+                    'status':'Missed valid round number'
                 }
                 return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                response = {
-                    'phoneRevs': [
-
-                    ],
-                    'companyRevs': [
-
-                    ],
-                    'phoneQuestions': [
-
-                    ],
-                    'companyQuestions': [
-
-                    ]
-                }
-                return JsonResponse(response, status=status.HTTP_200_OK)
         else:
             error = {
                 'success': False,
@@ -103,15 +160,25 @@ def get_review_grade(request):
         if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
             reqBody = json.loads(request.body.decode('utf-8'))
             try:
-                phoneRevPros   = reqBody['phoneRevPros']
-                phoneRevCons   = reqBody['phoneRevCons']
-                companyRevPros = reqBody['companyRevPros']
-                companyRevCons = reqBody['companyRevCons']
+                reviews: list = [
+                    [reqBody['phoneRevPros']],
+                    [reqBody['phoneRevCons']],
+                    [reqBody['companyRevPros']],
+                    [reqBody['companyRevCons']]
+                ]
                 # Calculate grade for review
-                response = {
-                    'grade': 30
-                }
-                return JsonResponse(response, status=status.HTTP_200_OK)
+                try:
+                    grade = Grading()
+                    response = {
+                        'grade': grade.calc_TF_IDF(reviews)
+                    }
+                    return JsonResponse(response, status=status.HTTP_200_OK)
+                except:
+                    error = {
+                        'success': False,
+                        'status': 'process failed'
+                    }
+                    return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except:
                 # Request body is not valid
                 error = {

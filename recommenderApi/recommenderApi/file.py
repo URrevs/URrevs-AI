@@ -19,7 +19,7 @@ class FileData:
             self.sheet_names, self.file_path = [], ''
             if self.alert: print("Error: File not found")
 
-    def load_sheet(self, sheet_name: str, index: str = '') -> Tuple[pd.DataFrame, bool]:
+    def load_sheet(self, sheet_name: str, index: str = '', na = 'n/a') -> Tuple[pd.DataFrame, bool]:
         '''
             function to load sheet from file
 
@@ -28,9 +28,9 @@ class FileData:
         '''
         try:
             if index != '':
-                self.data = pd.read_excel(self.file_path, sheet_name, na_values='n/a', index_col=index)
+                self.data = pd.read_excel(self.file_path, sheet_name, na_values=na, index_col=index)
             else:
-                self.data = pd.read_excel(self.file_path, sheet_name, na_values='n/a')
+                self.data = pd.read_excel(self.file_path, sheet_name, na_values=na)
             return self.data, True
         except:
             if self.alert: print("Error: Sheet not found")
