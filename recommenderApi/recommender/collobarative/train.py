@@ -165,8 +165,8 @@ def update_values(date: dt):
     print('recommendation daily history erased')
     
 def train_and_update(date: dt, first: bool = False):
-    if first:
-        date = dt(2022, 5, 1)
+    # if first:
+    #     date = dt(2022, 5, 1)
     update_values(date)
     train(first=first)
 
