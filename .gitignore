@@ -138,3 +138,8 @@ recommenderApi/.vscode/settings.json
 .gitignore
 recommenderApi/recommender/gamification/data1.pkl
 recommenderApi/recommender/mongoDB.py
+recommenderApi/.vscode/launch.json
+recommenderApi/dump.rdb
+recommenderApi/seenTable.pkl
+recommenderApi/dump.rdb
+recommenderApi/recommender/reviewsRecommender.py

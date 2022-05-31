@@ -27,12 +27,21 @@ class PReviewAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'productId')
     search_fields = ('id', 'userId', 'productId')
 
+@admin.register(models.Prev_Likes)
+class Prev_LikesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'userId', 'reviewId')
+    search_fields = ('id', 'userId', 'reviewId')
 
 @admin.register(models.CReview)
 class CReviewAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'companyId')
     search_fields = ('id', 'userId', 'companyId')
+    list_filter = ('companyId',)
 
+@admin.register(models.Crev_Likes)
+class Crev_LikesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'userId', 'reviewId')
+    search_fields = ('id', 'userId', 'reviewId')
 
 @admin.register(models.Question)
 class QuestionAdmin(admin.ModelAdmin):
