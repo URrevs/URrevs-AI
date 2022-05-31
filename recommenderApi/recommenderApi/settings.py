@@ -13,6 +13,7 @@ from email.policy import default
 import os
 from pathlib import Path
 from decouple import config
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 MONGODB_LINK = config('MONGODB_LINK', default='')
+MONGODB_NAME = config('MONGODB_NAME', default='')
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'{config("API_HOST", default="")}']
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +131,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+
+CELERY_BEAT_SCHEDULE = {
+    'TrainTask': {
+        'task': 'recommender.asyn_tasks.tasks.send_emails',
+        'schedule': 30 # every 30 seconds
+        # 'schedule': crontab(hour=0, minute=0), # every day at midnight
+    },
+}

@@ -10,23 +10,21 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import *
 from .fill_db import *
-# from .mongoDB import *
 from recommender.gamification.grading import Grading, FileData
+from recommender.mongoDB.getData import *
+from recommender.asyn_tasks.tasks import send_emails
 
-class Form(forms.Form):
-    num = forms.IntegerField(label='Num of Recommendations', min_value=1, max_value=10)
-
+# Create your views here.
 def index(request):
-    Grade = Grading()
-    # tfidf = 30
-    tfidf = Grade.calc_TF_IDF([
-        ['مرن وسهل الاستخدام ومليئ بالمزايا التي تسهل عليك استخدامه بأفضل الطرق والاحصائيات التي يعرضها بشكل دوري لمراقبة استخدامك اليومي وسرعة البحث بواسطة سيري'],
-        ['الشاشة سهلة الكسر وغالية جدا وأيضا ذاكرة الصور تنتهي ويجب عليك شراء سعة اضافيه'],
-        ['شاشة بامكانيات عاليه والكثير من التطبيقات التي تجعله مميز '],
-        ['الشاشة سهلة الكسر وغالية جدا وسعة الهاتف للصور والفيديوهات']
-    ])
-    # Grade.generate_transformer(FileData('recommender/gamification/data.xlsx').load_sheet('Sheet1')[0])
-    return JsonResponse({'success': tfidf, 'status': 'ok'})
+    print('start async task')
+    send_emails()
+    return JsonResponse({'message': 'Hello, World!'})
+# def index(request):
+#     conn = MongoConnection()
+#     phones = conn.get_product_reviews_likes_mongo(dt(2020, 1,1))
+#     for phone in phones:
+#         print(phone)
+#     return JsonResponse({'success': True, 'status': 'ok'})
 #-----------------------------------------------------------------------------------------------------
 def start_training(request) -> JsonResponse:
     '''
@@ -125,34 +123,6 @@ def get_reviews(request, userId: str) -> JsonResponse:
             'status': 'process failed'
         }
         return JsonResponse(response, status=status.HTTP_400_BAD_REQUEST)
-#-----------------------------------------------------------------------------------------------------
-def html_recommend(request, userId):
-    if request.method == 'POST':
-        form = Form(request.POST)
-        if form.is_valid():
-            # user = request.POST['user']
-            num = form.cleaned_data['num']
-        rec = ReviewContentRecommender()
-        df, check = rec.load_data(file_name='recommender/static/data/reviews.xlsx', sheet_name='product reviews')
-        users = df['user'].dropna().values.tolist()
-        reviews = df.index.values.tolist()
-        mostInteractedReview = choice(reviews)
-        lst, spaces = rec.recommend(referenceId=mostInteractedReview, path='recommender/static/data/', n_recommendations=num)
-        return render(request, 'recommender/index.html', {
-            'form': Form(),
-            'users': users,
-            'id': userId,
-            'mostInteractedReview': mostInteractedReview,
-            'recommendations': lst[1:]
-        })
-    rec = ReviewContentRecommender()
-    df, check = rec.load_data(file_name='recommender/static/data/reviews.xlsx', sheet_name='product reviews')
-    users = df['user'].dropna().values.tolist()
-    return render(request, 'recommender/index.html', {
-        'form': Form(),
-        'id': userId,
-        'users': users
-    })
 #-----------------------------------------------------------------------------------------------------
 @csrf_exempt
 def get_review_grade(request):
