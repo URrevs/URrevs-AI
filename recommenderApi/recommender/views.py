@@ -215,10 +215,11 @@ def get_recommendations(request, userId: str) -> JsonResponse:
                         'error': str(e)
                     }
                     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            except:
+            except Exception as e:
                 error = {
                     'success': False,
-                    'status':'Missed valid round number'
+                    'status':'Missed valid round number',
+		    'error': str(e)
                 }
                 return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
         else:
