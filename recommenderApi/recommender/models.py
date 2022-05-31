@@ -1,15 +1,21 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from recommenderApi.settings import ROUND_NUM_OF_REVIEWS
+from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
 
 # Create your models here.
 class User(models.Model):
     id   = models.CharField(max_length=100, primary_key=True)
     name = models.CharField(max_length=100, default='')
     
-    PR = models.IntegerField(default=4, validators=[MinValueValidator(1), MaxValueValidator(7)])
-    CR = models.IntegerField(default=2, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    PQ = models.IntegerField(default=3, validators=[MinValueValidator(1), MaxValueValidator(3)])
-    CQ = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(3)])
+    PR = models.IntegerField(default=2*ROUND_NUM_OF_REVIEWS//5, 
+            validators=[MinValueValidator(MIN_ITEM), MaxValueValidator(MAX_PREVIEW)])
+    CR = models.IntegerField(default=ROUND_NUM_OF_REVIEWS//5, 
+            validators=[MinValueValidator(MIN_ITEM), MaxValueValidator(MAX_CREVIEW)])
+    PQ = models.IntegerField(default=3*ROUND_NUM_OF_REVIEWS//10, 
+            validators=[MinValueValidator(MIN_ITEM), MaxValueValidator(MAX_PQUESTION)])
+    CQ = models.IntegerField(default=ROUND_NUM_OF_REVIEWS//10, 
+            validators=[MinValueValidator(MIN_ITEM), MaxValueValidator(MAX_CQUESTION)])
 
     def __str__(self) -> str:
         return f"{self.id} {self.name}"
@@ -18,14 +24,20 @@ class Company(models.Model):
     id      = models.CharField(max_length=100, primary_key=True)
     name    = models.CharField(max_length=100, default='')
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self) -> str:
         return f"{self.name}"
 #-----------------------------------------------------------------------------------------------------
 class Product(models.Model):
     id          = models.CharField(max_length=100, primary_key=True)
     name        = models.CharField(max_length=100, default='')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company     = models.ForeignKey(Company, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['name']
+    
     def __str__(self) -> str:
         return f"{self.id} {self.name}"
 #-----------------------------------------------------------------------------------------------------
@@ -57,6 +69,16 @@ class PReview(models.Model):
     def __str__(self) -> str:
         return f"{self.userId} review {self.productId}"
 #-----------------------------------------------------------------------------------------------------
+class Prev_Likes(models.Model):
+    userId      = models.ForeignKey(User, on_delete=models.CASCADE)
+    reviewId    = models.ForeignKey(PReview, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('userId', 'reviewId'))
+
+    def __str__(self) -> str:
+        return f"{self.userId} likes {self.reviewId}"
+#-----------------------------------------------------------------------------------------------------
 class CReview(models.Model):
     id              = models.CharField(max_length=100, primary_key=True)
     userId          = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -75,6 +97,16 @@ class CReview(models.Model):
     
     def __str__(self) -> str:
         return f"{self.userId} review {self.companyId}"
+#-----------------------------------------------------------------------------------------------------
+class Crev_Likes(models.Model):
+    userId      = models.ForeignKey(User, on_delete=models.CASCADE)
+    reviewId    = models.ForeignKey(CReview, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('userId', 'reviewId'))
+
+    def __str__(self) -> str:
+        return f"{self.userId} likes {self.reviewId}"
 #-----------------------------------------------------------------------------------------------------
 class Question(models.Model):
     id                  = models.CharField(max_length=100, primary_key=True)

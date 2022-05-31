@@ -4,9 +4,10 @@ from . import views
 app_name = 'recommender'
 urlpatterns = [
     path('', views.index, name='index'),
-    path('all/<str:userId>/recommend', views.get_reviews, name="reviews"),
-    path('html/all/<str:userId>/recommend', views.html_recommend, name="htmlreviews"),
+    path('all/default/recommend', views.get_anonymous_recommendations, name="anonymous_recommendations"),
+    path('all/<str:userId>/recommend', views.get_recommendations, name="recommendations"),
     path('phones/<str:phoneId>/recommend', views.get_similiar_phones, name="similiar_phones"),
     path('reviews/grade', views.get_review_grade, name="review_grade"),
-    path('start/training', views.start_training, name="start_training"),
+    path('training/start', views.start_training, name="start_training"),
+    path('training/reset', views.reset_files, name="reset_files"),
 ]

@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from pymongo import MongoClient
 import certifi
 
-def getRatios(diffs: list, old: list) -> list:
+def update_ratios(diffs: list, old: list) -> list:
     '''
         function to calculate the ratios based on the interactions and the old state
 

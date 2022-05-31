@@ -13,6 +13,7 @@ from email.policy import default
 import os
 from pathlib import Path
 from decouple import config
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +28,44 @@ SECRET_KEY = config('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 MONGODB_LINK = config('MONGODB_LINK', default='')
+MONGODB_UPDATE_TRAINING_TIME = config('MONGODB_UPDATE_TRAINING_TIME', default='')
+MONGODB_NAME = config('MONGODB_NAME', default='')
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'{config("API_HOST", default="")}']
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
+
+ROUND_NUM_OF_REVIEWS = config('ROUND_NUM_OF_ITEMS', default=20, cast=int)
+REMOVE_FROM_SEEN_TABLE_AFTER_DAYS = config('REMOVE_FROM_SEEN_TABLE_AFTER_DAYS', default=5, cast=int)
+DAILY_DECREASE_FOR_OLD_TRACKERS = config('DAILY_DECREASE_FOR_OLD_TRACKERS', default=0.1, cast=float)
+MIN_LEVEL_OLD_TRACKERS_REACH = config('MIN_LEVEL_OLD_TRACKERS_REACH', default=0.1, cast=float)
+EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE = config('EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE', default=50, cast=int)
+
+MIN_ITEM = max([ROUND_NUM_OF_REVIEWS//10, 1])
+MAX_PREVIEW = max([7*ROUND_NUM_OF_REVIEWS//10, 7])
+MAX_CREVIEW = max([5*ROUND_NUM_OF_REVIEWS//10, 5])
+MAX_PQUESTION = max([3*ROUND_NUM_OF_REVIEWS//10, 3])
+MAX_CQUESTION = max([3*ROUND_NUM_OF_REVIEWS//10, 3])
+
+# Review Trackers
+REVIEW_FULL_SCREEN = config('REVIEW_FULL_SCREEN', default=0.2, cast=float)
+REVIEW_LIKE = config('REVIEW_LIKE', default=0.3, cast=float)
+REVIEW_UNLIKE = config('REVIEW_UNLIKE', default=-0.3, cast=float)
+REVIEW_SEE_MORE = config('REVIEW_SEE_MORE', default=0.1, cast=float)
+REVIEW_COMMENT = config('REVIEW_COMMENT', default=0.4, cast=float)
+REVIEW_DONT_LIKE = config('REVIEW_DONT_LIKE', default=-1, cast=float)
+
+# Question Trackers
+QUESTION_FULL_SCREEN = config('QUESTION_FULL_SCREEN', default=0.3, cast=float)
+QUESTION_UPVOTE = config('QUESTION_UPVOTE', default=0.3, cast=float)
+QUESTION_DOWNVOTE = config('QUESTION_DOWNVOTE', default=-0.3, cast=float)
+QUESTION_ANSWER = config('QUESTION_ANSWER', default=0.4, cast=float)
+QUESTION_DONT_LIKE = config('QUESTION_DONT_LIKE', default=-1, cast=float)
+
+# Mobile Trackers
+MOBILE_PROFILE = config('MOBILE_PROFILE', default=0.3, cast=float)
+MOBILE_COMPARE = config('MOBILE_COMPARE', default=0.2, cast=float)
+MOBILE_QUESTION = config('MOBILE_QUESTION', default=0.5, cast=float)
+
 
 # Application definition
 
@@ -41,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +165,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+
+# CELERY_BEAT_SCHEDULE = {
+#     'TrainTask': {
+#         'task': 'recommender.asyn_tasks.tasks.send_emails',
+#         'schedule': 30 # every 30 seconds
+#         # 'schedule': crontab(hour=0, minute=0), # every day at midnight
+#     },
+# }
