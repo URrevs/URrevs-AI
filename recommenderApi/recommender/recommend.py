@@ -41,6 +41,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     total = []
     total_spaces = []
     # 3rd Model Recommend only PR
+    seen_table = SeenTable(loadfile=True)
     if round <= (200//ROUND_NUM_OF_REVIEWS):
         items_interactions_existance_check = check_interactions_existance(userId, search_in='items')
         if check_interactions_existance(userId, search_in='mobiles') and items_interactions_existance_check:
@@ -56,7 +57,6 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 items=reviews
                 )
             recs = [f'0{review}' for review in recs]
-            seen_table = SeenTable(loadfile=True)
             productReviews, spaces = seen_table.check_if_review_shown_before(userId, recs[1:], spaces)
             PR = PR - len(productReviews)
         # --------------------------------------------------
@@ -103,15 +103,18 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                     if PR > 0 and review[0] == '0':
                         productReviews.append(review[1:])
                         total.append(review[1:])
+                        seen_table.addToSeenTable(userId, [review])
                         PR -= 1
                     if CR > 0 and review[0] == '1':
                         companyReviews.append(review[1:])
                         total.append(review[1:])
+                        seen_table.addToSeenTable(userId, [review])
                         CR -= 1
             if PR > 0 or CR > 0:
                 for review in reviews:
                     if review[1:] not in total:
                         total.append(review[1:])
+                        seen_table.addToSeenTable(userId, [review])
                         if review[0] == '0':
                             productReviews.append(review[1:]);PR -= 1
                         if review[0] == '1':
