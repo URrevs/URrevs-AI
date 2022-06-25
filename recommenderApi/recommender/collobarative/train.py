@@ -146,8 +146,6 @@ def update_values(date: dt):
     print('mobile trackers saved')
     SeenTable(loadfile=True).removeExpiredDateFromSeenTable(REMOVE_FROM_SEEN_TABLE_AFTER_DAYS * 86400)
     print('removed expired date from seen table')
-    send_date(time)
-    print('sent date')
     sqlite = SQLite_Database()
     for user in items_trackers_file.usersDic.keys():
         u = sqlite.get_user(id = user)
@@ -163,6 +161,8 @@ def update_values(date: dt):
     users = {}
     dump(users, open('recommender/users.pkl', 'wb'))
     print('recommendation daily history erased')
+    send_date(time)
+    print('sent date')
     
 def train_and_update(date: dt, first: bool = False):
     # if first:

@@ -239,7 +239,8 @@ class MongoConnection:
         comparisons = comparison_col.find({'updatedAt': {'$gte': date}})
         comparisons_lst: list = []
         for comparison in comparisons:
-            comparisons_lst.append({'id': str(comparison['user']), 'phone1': str(comparison['phone1']), 'phone2': str(comparison['phone2'])})
+            comparisons_lst.append({'id': str(comparison['user']), 'phone': str(comparison['srcPhone'])})
+            comparisons_lst.append({'id': str(comparison['user']), 'phone': str(comparison['dstPhone'])})
         return comparisons_lst
 
     def get_all_products_trackers_mongo(self, date: dt):

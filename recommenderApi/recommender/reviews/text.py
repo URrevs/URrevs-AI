@@ -23,9 +23,9 @@ class TextFeatureExtraction:
             output: the count of words in sentence without the stopwords
         '''
         tokens: list = word_tokenize(sentence)
-        if not os.path.isfile('recommender/static/data/stopwords.pkl'):
+        if not os.path.isfile('recommender/reviews/stopwords.pkl'):
             self.updateStopWords()
-        stopwords: list = load(open('recommender/static/data/stopwords.pkl', 'rb'))
+        stopwords: list = load(open('recommender/reviews/stopwords.pkl', 'rb'))
         
         count: int = 0
         for token in tokens:
@@ -57,7 +57,7 @@ class TextFeatureExtraction:
         arabic = self.readFile('nltk_data/corpora/stopwords/arabic')
         if len(lstStopWords) == 0:
             lstStopWords = english + arabic + more_stopwords
-        dump(lstStopWords, open('recommender/static/data/stopwords.pkl', 'wb'))
+        dump(lstStopWords, open('recommender/reviews/stopwords.pkl', 'wb'))
 
     def apply_Tokenization(self, data: pd.DataFrame, columns: list = [], inplace: bool = False) -> pd.DataFrame:
         '''
@@ -88,9 +88,9 @@ class TextFeatureExtraction:
             parameters: the sentences
             output: the TF-IDF of the sentences and the vectorizer model
         '''
-        if not os.path.isfile('recommender/static/data/stopwords.pkl'):
+        if not os.path.isfile('recommender/reviews/stopwords.pkl'):
             self.updateStopWords()
-        stopwords: list = load(open('recommender/static/data/stopwords.pkl', 'rb'))
+        stopwords: list = load(open('recommender/reviews/stopwords.pkl', 'rb'))
         
         vectorizer = TfidfVectorizer(stop_words= stopwords)
         matrix = vectorizer.fit_transform(sentences)
