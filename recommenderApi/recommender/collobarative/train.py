@@ -11,66 +11,70 @@ from recommender.models import *
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
 
 def train(first: bool = False):
-    vars = load(open('recommenderApi/vars.pkl', 'rb'))
-    if first:
-        print('----------------------------------------------------------------------------')
-        print('Training on items data')
-        # Training on items data
-        items_epochs = 600
-        items_model = MatrixFactorization(n_epochs=items_epochs)
-        train_rmse = items_model.train(path='recommender/collobarative/itemsTrackers.pkl',
-            test_size=0.2, reg = 0.005, gamma=0.5)
-        test_rmse = items_model.test()
-        print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-        vars['items_epochs'] = items_epochs
-        items_model.save_model()
-        
-        # Training on mobiles data
-        mobiles_epochs = 30
-        mobiles_model = MatrixFactorization(n_epochs=mobiles_epochs, columns=['user_id', 'product_id', 'rating', 'rating_pred'])
-        train_rmse = mobiles_model.train(path='recommender/collobarative/mobileTrackers.pkl', test_size=0.2)
-        test_rmse = mobiles_model.test()
-        print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-        vars['mobiles_epochs'] = mobiles_epochs
-        mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
-                
-    else:
-        print('----------------------------------------------------------------------------')
-        print('Training on items data')
-        # Training on items data
-        items_epochs = vars['items_epochs']
-        while True:
+    try:
+        vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        if first:
+            print('------------------------------------ Start training ----------------------------------------')
+            print('Training on items data')
+            # Training on items data
+            items_epochs = 600
             items_model = MatrixFactorization(n_epochs=items_epochs)
-            train_rmse = items_model.online_train(path='recommender/collobarative/itemsTrackers.pkl',
-                model_path='recommender/collobarative/MF_items_model.pkl', test_size=0.2)
+            train_rmse = items_model.train(path='recommender/collobarative/itemsTrackers.pkl',
+                test_size=0.2, reg = 0.005, gamma=0.5)
             test_rmse = items_model.test()
             print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-            # if train_rmse < 0.1 and test_rmse < 0.1:
-            if train_rmse < 0.3:
-                vars['items_epochs'] = items_epochs
-                items_model.save_model(model_path='recommender/collobarative/MF_items_model.pkl')
-                break
-            else:
-                items_epochs += EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
-        print('----------------------------------------------------------------------------')
-        print('Training on mobiles data')
-        # Training on mobiles data
-        mobiles_epochs = vars['mobiles_epochs']
-        while True:
+            vars['items_epochs'] = items_epochs
+            items_model.save_model()
+            
+            # Training on mobiles data
+            mobiles_epochs = 30
             mobiles_model = MatrixFactorization(n_epochs=mobiles_epochs, columns=['user_id', 'product_id', 'rating', 'rating_pred'])
-            train_rmse = mobiles_model.online_train(path='recommender/collobarative/mobileTrackers.pkl',
-                model_path='recommender/collobarative/MF_mobiles_model.pkl', test_size=0.2)
+            train_rmse = mobiles_model.train(path='recommender/collobarative/mobileTrackers.pkl', test_size=0.2)
             test_rmse = mobiles_model.test()
             print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-            # if train_rmse < 0.1 and test_rmse < 0.1:
-            if train_rmse < 0.3:    
-                mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
-                vars['mobiles_epochs'] = mobiles_epochs
-                break
-            else:
-                items_epochs += EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
-        print('------------------------------------------------------')
-    dump(vars, open('recommenderApi/vars.pkl', 'wb'))
+            vars['mobiles_epochs'] = mobiles_epochs
+            mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
+                    
+        else:
+            print('------------------------------------ Start training items --------------------------------------')
+            print('Training on items data')
+            # Training on items data
+            items_epochs = vars['items_epochs']
+            while True:
+                items_model = MatrixFactorization(n_epochs=items_epochs)
+                train_rmse = items_model.online_train(path='recommender/collobarative/itemsTrackers.pkl',
+                    model_path='recommender/collobarative/MF_items_model.pkl', test_size=0.2)
+                test_rmse = items_model.test()
+                print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
+                # if train_rmse < 0.1 and test_rmse < 0.1:
+                if train_rmse < 0.3:
+                    vars['items_epochs'] = items_epochs
+                    items_model.save_model(model_path='recommender/collobarative/MF_items_model.pkl')
+                    break
+                else:
+                    items_epochs += EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
+            print('----------------------------------- Start training mobiles -----------------------------------------')
+            print('Training on mobiles data')
+            # Training on mobiles data
+            mobiles_epochs = vars['mobiles_epochs']
+            while True:
+                mobiles_model = MatrixFactorization(n_epochs=mobiles_epochs, columns=['user_id', 'product_id', 'rating', 'rating_pred'])
+                train_rmse = mobiles_model.online_train(path='recommender/collobarative/mobileTrackers.pkl',
+                    model_path='recommender/collobarative/MF_mobiles_model.pkl', test_size=0.2)
+                test_rmse = mobiles_model.test()
+                print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
+                # if train_rmse < 0.1 and test_rmse < 0.1:
+                if train_rmse < 0.3:    
+                    mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
+                    vars['mobiles_epochs'] = mobiles_epochs
+                    break
+                else:
+                    items_epochs += EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
+            print('------------------------------------------------------')
+        dump(vars, open('recommenderApi/vars.pkl', 'wb'))
+    except Exception as e:
+        print(e)
+        pass
 
 def update_ratios(diffs: list, old: list) -> list:
     '''
@@ -112,57 +116,62 @@ def get_all_mobiles_have_reviews():
     return sqlite.get_all_mobiles_have_reviews()
 
 def update_values(date: dt):
-    mongo = MongoConnection()
-    mongo.update_all_fixed_data_mongo(date=date)
-    print('updated all fixed data')
-    review = ReviewContentRecommender()
-    review.preprocessing()
-    review.preprocessing(recommend_type='company', path='recommender/reviews/crevs.pkl')
-    items_trackers = mongo.get_all_items_trackers_mongo(date=date)
-    print('got all items trackers')
-    items_trackers_file = Trackers(loadfile=True)
-    # items_trackers_file.resetTrackersFile()
-    
-    for item_type in items_trackers.keys():
-        for tracker_type in items_trackers[item_type].keys():
-            items_trackers_file.addItemsTrackers(items_trackers[item_type][tracker_type], Review_Tracker[tracker_type], item_type=='company')
-    print('added items trackers')
-    items_trackers_file.down_old_items_grade()
-    print('downgraded old items')
-    items_trackers_file.saveTrackers()
-    print('items trackers saved')
-    mobile_trackers_file = Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True)
-    mobile_trackers_file.resetTrackersFile(col='product_id')
-    mobile_trackers = mongo.get_all_products_trackers_mongo(date=date)
-    print('got all mobiles trackers')
-    time = dt.now()
-    for item_type in mobile_trackers.keys():
-        for tracker_type in mobile_trackers[item_type].keys():
-            mobile_trackers_file.addMobilesTrackers(mobile_trackers[item_type][tracker_type], Mobile_Tracker[tracker_type])
-    print('added mobile trackers')
-    mobile_trackers_file.down_old_items_grade()
-    print('downgraded old mobile')
-    mobile_trackers_file.saveTrackers()
-    print('mobile trackers saved')
-    SeenTable(loadfile=True).removeExpiredDateFromSeenTable(REMOVE_FROM_SEEN_TABLE_AFTER_DAYS * 86400)
-    print('removed expired date from seen table')
-    sqlite = SQLite_Database()
-    for user in items_trackers_file.usersDic.keys():
-        u = sqlite.get_user(id = user)
-        [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
-        sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
-    print('updated user ratios')
-    for item in items_trackers_file.interactions.keys():
-        update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
-    print('updated counts')
-    get_all_mobiles_have_reviews()
-    calc_anonymous_data()
-    print('calculated anonymous data')
-    users = {}
-    dump(users, open('recommender/users.pkl', 'wb'))
-    print('recommendation daily history erased')
-    send_date(time)
-    print('sent date')
+    try:
+        print('----------------------------- Start Updating Values ------------------------------------')
+        mongo = MongoConnection()
+        mongo.update_all_fixed_data_mongo(date=date)
+        print('updated all fixed data')
+        review = ReviewContentRecommender()
+        review.preprocessing()
+        review.preprocessing(recommend_type='company', path='recommender/reviews/crevs.pkl')
+        items_trackers = mongo.get_all_items_trackers_mongo(date=date)
+        print('got all items trackers')
+        items_trackers_file = Trackers(loadfile=True)
+        # items_trackers_file.resetTrackersFile()
+        
+        for item_type in items_trackers.keys():
+            for tracker_type in items_trackers[item_type].keys():
+                items_trackers_file.addItemsTrackers(items_trackers[item_type][tracker_type], Review_Tracker[tracker_type], item_type=='company')
+        print('added items trackers')
+        items_trackers_file.down_old_items_grade()
+        print('downgraded old items')
+        items_trackers_file.saveTrackers()
+        print('items trackers saved')
+        mobile_trackers_file = Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True)
+        mobile_trackers_file.resetTrackersFile(col='product_id')
+        mobile_trackers = mongo.get_all_products_trackers_mongo(date=date)
+        print('got all mobiles trackers')
+        time = dt.now()
+        for item_type in mobile_trackers.keys():
+            for tracker_type in mobile_trackers[item_type].keys():
+                mobile_trackers_file.addMobilesTrackers(mobile_trackers[item_type][tracker_type], Mobile_Tracker[tracker_type])
+        print('added mobile trackers')
+        mobile_trackers_file.down_old_items_grade()
+        print('downgraded old mobile')
+        mobile_trackers_file.saveTrackers()
+        print('mobile trackers saved')
+        SeenTable(loadfile=True).removeExpiredDateFromSeenTable(REMOVE_FROM_SEEN_TABLE_AFTER_DAYS * 86400)
+        print('removed expired date from seen table')
+        sqlite = SQLite_Database()
+        for user in items_trackers_file.usersDic.keys():
+            u = sqlite.get_user(id = user)
+            [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
+            sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
+        print('updated user ratios')
+        for item in items_trackers_file.interactions.keys():
+            update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
+        print('updated counts')
+        get_all_mobiles_have_reviews()
+        calc_anonymous_data()
+        print('calculated anonymous data')
+        users = {}
+        dump(users, open('recommender/users.pkl', 'wb'))
+        print('recommendation daily history erased')
+        send_date(time)
+        print('sent date')
+    except Exception as e:
+        print(e)
+        pass
     
 def train_and_update(date: dt, first: bool = False):
     # if first:
