@@ -20,7 +20,7 @@ from recommender.collobarative.recommend import *
 from recommender.collobarative.train import *
 from recommender.collobarative.train import *
 from recommender.recommend import *
-from recommender.mobiles.getPhones import save_phones
+# from recommender.mobiles.getPhones import get_phones
 
 # Create your views here.
 def index(request):
@@ -39,7 +39,7 @@ def index(request):
     #         print(user)
     # except:
     #     print('error')
-    save_phones()
+    # print(get_phones())
     # update_values(dt(2020, 1,1))
     # train_and_update(dt(2020, 1,1), first=False)
     # Trackers(loadfile=True).showTrackers()
