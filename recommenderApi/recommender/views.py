@@ -79,7 +79,7 @@ def index(request):
     # calc_anonymous_data()
     # print('start async task')
     # send_emails.delay()
-    return JsonResponse({'message': 'Hello, World!'})
+    return JsonResponse({'message': 'Deployed Successfully'})
 # def index(request):
 #     conn = MongoConnection()
     # phones = conn.get_product_reviews_likes_mongo(dt(2020, 1,1))
@@ -128,25 +128,25 @@ def start_training(request) -> JsonResponse:
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
             reqBody = request.GET
+            # try:
             try:
-                try:
-                    first = bool(reqBody.get('first') == '1')
-                except:
-                    first = False
-                # Sync training run here
-                var = load(open('recommenderApi/vars.pkl', 'rb'))
-                train_and_update(var['time'], first=first)
-                response = {
-                    'message': 'Training started'
-                }
-                return JsonResponse(response, status=status.HTTP_200_OK)
-            except Exception as e:
-                error = {
-                    'success': False,
-                    'status': 'process failed',
-                    'error': str(e)
-                }
-                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                first = bool(reqBody.get('first') == '1')
+            except:
+                first = False
+            # Sync training run here
+            var = load(open('recommenderApi/vars.pkl', 'rb'))
+            train_and_update(var['time'], first=first)
+            response = {
+                'message': 'Training started'
+            }
+            return JsonResponse(response, status=status.HTTP_200_OK)
+            # except Exception as e:
+            #     error = {
+            #         'success': False,
+            #         'status': 'process failed',
+            #         'error': str(e)
+            #     }
+            #     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             error = {
                 'success': False,
