@@ -9,11 +9,9 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-from email.policy import default
 import os
 from pathlib import Path
 from decouple import config
-from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -66,6 +64,8 @@ MOBILE_PROFILE = config('MOBILE_PROFILE', default=0.3, cast=float)
 MOBILE_COMPARE = config('MOBILE_COMPARE', default=0.2, cast=float)
 MOBILE_QUESTION = config('MOBILE_QUESTION', default=0.5, cast=float)
 
+HOUR = config('HOUR', default=19, cast=int)
+MINUTE = config('MINUTE', default=21, cast=int)
 
 # Application definition
 
@@ -77,7 +77,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -120,7 +119,7 @@ WSGI_APPLICATION = 'recommenderApi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': str(BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -167,7 +166,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 
 # CELERY_BEAT_SCHEDULE = {
 #     'TrainTask': {

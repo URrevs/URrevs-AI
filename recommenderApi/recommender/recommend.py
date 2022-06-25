@@ -1,5 +1,4 @@
 from sklearn.utils import shuffle
-from recommender.asyn_tasks.tasks import addToSeenTable
 from recommender.collobarative.recommend import MatrixFactorization
 from recommender.collobarative.seenTable import SeenTable
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
