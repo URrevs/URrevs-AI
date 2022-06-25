@@ -71,6 +71,7 @@ class Grading:
         value: int = 0
         for i in range(4):
             tfidf_review: float = np.average(tfidf[i].transform(lstReviews[i]).toarray(), axis=1)[0]
+            print("111111111111111111111111111111")
             tfidf_review = 10 * (tfidf_review - limits[i][0]) / (limits[i][1] - limits[i][0])
             if tfidf_review < limits[i][0]: tfidf_review = limits[i][0]
             if tfidf_review > limits[i][1]: tfidf_review = limits[i][1]

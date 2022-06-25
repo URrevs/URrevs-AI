@@ -20,6 +20,7 @@ from recommender.collobarative.recommend import *
 from recommender.collobarative.train import *
 from recommender.collobarative.train import *
 from recommender.recommend import *
+from recommender.mobiles.getPhones import save_phones
 
 # Create your views here.
 def index(request):
@@ -38,7 +39,7 @@ def index(request):
     #         print(user)
     # except:
     #     print('error')
-
+    save_phones()
     # update_values(dt(2020, 1,1))
     # train_and_update(dt(2020, 1,1), first=False)
     # Trackers(loadfile=True).showTrackers()
@@ -46,7 +47,7 @@ def index(request):
     # train(first = True)
     # SeenTable(loadfile=True).resetSeenTable()
     # print('seentable============================')
-    SeenTable(loadfile=True).showSeenTable()
+    # SeenTable(loadfile=True).showSeenTable()
     # model = MatrixFactorization(n_epochs = 30, alert = True)
     # model.load_model()
     # print(model.recommend_items('628a60526811b1d11dbba4e1'))
@@ -171,16 +172,16 @@ def get_recommendations(request, userId: str) -> JsonResponse:
             reqBody = request.GET
             try:
                 round = int(reqBody.get('round'))
-                user1 = get_user(userId)
-                if user1 == None:
-                    check, user = MongoConnection().check_new_user_mongo(userId)
-                    if not check:
-                        error = {
-                            'success': False,
-                            'status': "user doesn't exist"
-                        }
-                        return JsonResponse(error, status=status.HTTP_404_NOT_FOUND)
                 try:
+                    user1 = get_user(userId)
+                    if user1 == None:
+                        check, user = MongoConnection().check_new_user_mongo(userId)
+                        if not check:
+                            error = {
+                                'success': False,
+                                'status': "user doesn't exist"
+                            }
+                            return JsonResponse(error, status=status.HTTP_404_NOT_FOUND)
                     if user1 != None:
                         # print(user1, round)
                         productReviews, companyReviews, productQuestions, companyQuestions, total = recommend(
@@ -257,10 +258,11 @@ def get_anonymous_recommendations(request) -> JsonResponse:
                         'total': total
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)
-                except:
+                except Exception as e:
                     error = {
                         'success': False,
-                        'status': 'process failed'
+                        'status': 'process failed',
+                        'error': str(e)
                     }
                     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except:
