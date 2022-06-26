@@ -161,3 +161,8 @@ recommenderApi/recommender/reviews/stopwords.pkl
 .gitignore
 recommenderApi/recommender/reviews/vectorizer.pkl
 recommenderApi/recommenderApi/vars.pkl
+recommenderApi/celerybeat-schedule.bak
+recommenderApi/celerybeat-schedule.dat
+recommenderApi/celerybeat-schedule.dir
+recommenderApi/temp-6496.rdb
+celery.txt
