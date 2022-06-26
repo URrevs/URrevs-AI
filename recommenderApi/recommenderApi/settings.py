@@ -71,13 +71,14 @@ MINUTE = config('MINUTE', default=21, cast=int)
 # Application definition
 
 INSTALLED_APPS = [
-    'recommender',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
+    'recommender',
 ]
 
 MIDDLEWARE = [
@@ -173,12 +174,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 
 # CELERY_BEAT_SCHEDULE = {
 #     'TrainTask': {
-#         'task': 'recommender.asyn_tasks.tasks.send_emails',
-#         'schedule': 30 # every 30 seconds
+#         'task': 'recommender.asyn_tasks.tasks.send_schedualed_emails',
+#         'schedule': 10 # every 30 seconds
 #         # 'schedule': crontab(hour=0, minute=0), # every day at midnight
 #     },
 # }

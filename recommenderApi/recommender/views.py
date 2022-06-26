@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework import status
 # from django import forms
 from recommenderApi.imports import *
-from recommenderApi import settings
+from recommenderApi.settings import *
 # from recommender.reviewsRecommender import ReviewContentRecommender
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -14,11 +14,10 @@ from .fill_db import *
 from recommender.gamification.grading import Grading, FileData
 from recommender.mongoDB.getData import *
 from recommender.mongoDB.sendData import *
-# from recommender.asyn_tasks.tasks import send_emails
+from recommender.asyn_tasks.tasks import start_async
 from recommender.sqliteDB.data import *
 from recommender.collobarative.recommend import *
-from recommender.collobarative.train import *
-from recommender.collobarative.train import *
+# from recommender.collobarative.train import *
 from recommender.recommend import *
 # from recommender.mobiles.getPhones import get_phones
 
@@ -78,21 +77,16 @@ def index(request):
     # print(r)
     # calc_anonymous_data()
     # print('start async task')
-    # send_emails.delay()
+    # send_emails.delay(22)
+    # print('after async task')
     return JsonResponse({'message': 'Deployed Successfully'})
-# def index(request):
-#     conn = MongoConnection()
-    # phones = conn.get_product_reviews_likes_mongo(dt(2020, 1,1))
-    # for phone in phones:
-    #     print(phone)
-#     return JsonResponse({'success': True, 'status': 'ok'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:
     '''
         reset all files for training
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             try:
                 Trackers().resetTrackersFile()
                 Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
@@ -126,7 +120,7 @@ def start_training(request) -> JsonResponse:
     train the recommender system
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
             # try:
             try:
@@ -135,10 +129,15 @@ def start_training(request) -> JsonResponse:
                 first = False
             # Sync training run here
             if first: date = dt(2018, 1, 1)
-            else: 
-                var = load(open('recommenderApi/vars.pkl', 'rb'))
-                date = var['date']
-            train_and_update(date, first=first)
+            else:
+                try:
+                    var = load(open('recommenderApi/vars.pkl', 'rb'))
+                    date = var['date']
+                except:
+                    date =  MongoConnection().get_last_training_time()
+            print('start async task')
+            start_async.delay(date, first)
+            # train_and_update(date, first=first)
             response = {
                 'message': 'Training started'
             }
@@ -171,7 +170,7 @@ def get_recommendations(request, userId: str) -> JsonResponse:
         output: the reviews of the user
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
             try:
                 round = int(reqBody.get('round'))
@@ -247,7 +246,7 @@ def get_anonymous_recommendations(request) -> JsonResponse:
         output: the reviews of the user
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
             try:
                 round = int(reqBody.get('round'))
@@ -290,7 +289,7 @@ def get_anonymous_recommendations(request) -> JsonResponse:
 @csrf_exempt
 def get_review_grade(request):
     if request.method == 'POST':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = json.loads(request.body.decode('utf-8'))
             try:
                 reviews: list = [
@@ -358,7 +357,7 @@ similiar_phones = [
 
 def get_similiar_phones(request, phoneId):
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             response = {
                 'similiar_phones': similiar_phones
             }

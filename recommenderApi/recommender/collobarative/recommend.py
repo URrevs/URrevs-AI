@@ -2,7 +2,7 @@ from recommenderApi.imports import *
 from recommender.collobarative.matrix_factorization import BaselineModel, KernelMF, train_update_test_split
 from recommender.collobarative.seenTable import *
 from recommender.collobarative.save_load_data import *
-from recommender.asyn_tasks.tasks import *
+# from recommender.asyn_tasks.tasks import *
     
 class MatrixFactorization:
     def __init__(self, n_epochs: int = 20, alert: bool = False, columns = ['user_id', 'item_id', 'rating', 'rating_pred']):
@@ -27,31 +27,44 @@ class MatrixFactorization:
 
     def train(self, path: str = 'recommender/collobarative/itemsTrackers.pkl',  
         test_size: float = 0.2, lr = 0.001, reg = 0.005, gamma = 'auto'):
-        self.matrix_fact = KernelMF(n_epochs=self.n_epochs, n_factors = 100, verbose = self.alert, 
-            lr = lr, reg = reg, columns=self.columns, gamma=gamma)
-        self.split_data(path=path, test_size=test_size)
-        if self.alert: print('training started')
-        self.matrix_fact.fit(self.X_train, self.y_train)
-        if self.alert: print('model trained successfully')
-        return self.matrix_fact.train_rmse[-1]
+        try:
+            self.matrix_fact = KernelMF(n_epochs=self.n_epochs, n_factors = 100, verbose = self.alert, 
+                lr = lr, reg = reg, columns=self.columns, gamma=gamma)
+            self.split_data(path=path, test_size=test_size)
+            if self.alert: print('training started')
+            self.matrix_fact.fit(self.X_train, self.y_train)
+            if self.alert: print('model trained successfully')
+            return self.matrix_fact.train_rmse[-1]
+        except Exception as e:
+            print("may be no new data: ", e)
+            return 0
+
     
     def online_train(self, path: str = 'recommender/collobarative/itemsTrackers.pkl', 
         model_path: str = 'recommender/collobarative/MF_items_model.pkl', test_size: float = 0.2):
-        self.load_model(path=model_path)
-        self.split_data(path=path, test_size=test_size)
-        if self.alert: print('training started')
-        self.matrix_fact.fit(self.X_train, self.y_train)
-        if self.alert: print('model trained successfully')
-        return self.matrix_fact.train_rmse[-1]
+        try:
+            self.load_model(path=model_path)
+            self.split_data(path=path, test_size=test_size)
+            if self.alert: print('training started')
+            self.matrix_fact.fit(self.X_train, self.y_train)
+            if self.alert: print('model trained successfully')
+            return self.matrix_fact.train_rmse[-1]
+        except Exception as e:
+            print("may be no new data: ", e)
+            return 0
 
     def save_model(self, model_path: str = 'recommender/collobarative/MF_items_model.pkl'):
         dump(self.matrix_fact, open(model_path, 'wb'))
         if self.alert: print('model saved successfully')
         
     def test(self):
-        predictions = self.matrix_fact.predict(self.X_test)
-        mse = mean_squared_error(self.y_test, predictions)
-        return mse
+        try:
+            predictions = self.matrix_fact.predict(self.X_test)
+            mse = mean_squared_error(self.y_test, predictions)
+            return mse
+        except Exception as e:
+            print("may be no new data: ", e)
+            return 0
 
     def load_model(self, path: str = 'recommender/collobarative/MF_items_model.pkl'):
         self.matrix_fact = load(open(path, 'rb'))

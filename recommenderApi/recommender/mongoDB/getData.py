@@ -65,6 +65,7 @@ class MongoConnection:
         phones = phones_col.find({'createdAt': {'$gte': date}}, projection)
         return phones
 
+    # pqueslikes, question
     def get_product_reviews_likes_mongo(self, date: dt):
         prevs_likes_col = self.db['prevslikes']
         likes = prevs_likes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
@@ -75,6 +76,7 @@ class MongoConnection:
             likes_lst.append({'id': str(like['user']), 'review': f"0{like['review']}"})
         return likes_lst
     
+    # cqueslikes, question
     def get_company_reviews_likes_mongo(self, date: dt):
         crevs_likes_col = self.db['crevslikes']
         likes = crevs_likes_col.find({'createdAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
@@ -85,6 +87,7 @@ class MongoConnection:
             likes_lst.append({'id': str(like['user']), 'review': f"1{like['review']}"})
         return likes_lst
 
+    # pquesunlikes, question
     def get_product_reviews_unlikes_mongo(self, date: dt):
         prevs_unlikes_col = self.db['prevsunlikes']
         unlikes = prevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -95,6 +98,7 @@ class MongoConnection:
             unlikes_lst.append({'id': str(unlike['user']), 'review': f"0{unlike['review']}"})
         return unlikes_lst
 
+    # cquesunlikes, question
     def get_company_reviews_unlikes_mongo(self, date: dt):
         crevs_unlikes_col = self.db['crevsunlikes']
         unlikes = crevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -106,6 +110,7 @@ class MongoConnection:
         return unlikes_lst
         # return unlikes
 
+    # pquesanswers, question
     def get_product_reviews_comments_mongo(self, date: dt):
         prevs_comments_col = self.db['prevscomments']
         comments = prevs_comments_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -116,6 +121,7 @@ class MongoConnection:
         return comments_lst
         # return comments
 
+    # cquesanswers, question
     def get_company_reviews_comments_mongo(self, date: dt):
         crevs_comments_col = self.db['crevscomments']
         comments = crevs_comments_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -146,6 +152,7 @@ class MongoConnection:
         return seemores_lst
         # return seemores
 
+    # pquesfullscreens, question
     def get_product_reviews_fullscreens_mongo(self, date: dt):
         prevs_fullscreens_col = self.db['prevsfullscreens']
         fullscreens = prevs_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -156,6 +163,7 @@ class MongoConnection:
         return fullscreens_lst
         # return fullscreens
 
+    # cquesfullscreens, question
     def get_company_reviews_fullscreens_mongo(self, date: dt):
         crevs_fullscreens_col = self.db['crevsfullscreens']
         fullscreens = crevs_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -166,6 +174,7 @@ class MongoConnection:
         return fullscreens_lst
         # return fullscreens
 
+    # pqueshates, question
     def get_product_reviews_hates_mongo(self, date: dt):
         prevs_hates_col = self.db['prevshates']
         hates = prevs_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -176,6 +185,7 @@ class MongoConnection:
         return hates_lst
         # return hates
 
+    # cqueshates, question
     def get_company_reviews_hates_mongo(self, date: dt):
         crevs_hates_col = self.db['crevshates']
         hates = crevs_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
@@ -185,6 +195,11 @@ class MongoConnection:
             hates_lst.append({'id': str(hate['user']), 'review': f"1{hate['review']}"})
         return hates_lst
         # return hates
+
+    def get_last_training_time(self):
+        col = self.db['constants']
+        time = col.find_one({'name': 'AILastQuery'}, {'_id': 0, 'date': 1})
+        return time['date']
 
     def update_all_fixed_data_mongo(self, date:dt):
         sqlite = SQLite_Database()
@@ -253,3 +268,9 @@ class MongoConnection:
         }
         return trackers
 
+
+    # phone question
+    # pques _id, user, createdAt, phone, content, acceptedAns
+    # If null AcceptedAnswer = false else AcceptedAnswer = true
+    # cques _id, user, createdAt, company, content, acceptedAns
+    # If null AcceptedAnswer = false else AcceptedAnswer = true
