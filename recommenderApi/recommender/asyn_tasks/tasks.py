@@ -12,6 +12,7 @@ from recommender.collobarative.train import train_and_update
 
 @shared_task
 def start_async(date, first):
+    print('start async task')
     train_and_update(date, first=first)
     print('end async task')
     return
