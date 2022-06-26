@@ -6,6 +6,7 @@ from recommender.sqliteDB.data import SQLite_Database
 class MongoConnection:
     def __init__(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
         self.db = self.connect_to_mongo(mongodb_link, mongodb_name)
+        print('connected to mongo')
         return None
     
     def connect_to_mongo(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
@@ -204,8 +205,10 @@ class MongoConnection:
     def update_all_fixed_data_mongo(self, date:dt):
         sqlite = SQLite_Database()
         users = self.get_users_mongo(date)
+        print('get all users mongo')
         for user in users:
             sqlite.create_new_user_ifNotExist(user)
+        print('add them to sqlite db')
         companies = self.get_companies_mongo()
         for company in companies:
             sqlite.create_new_company_ifNotExist(company)
