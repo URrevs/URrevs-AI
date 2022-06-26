@@ -60,6 +60,7 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+dump.rdb
 
 # Flask stuff:
 instance/
@@ -143,3 +144,20 @@ recommenderApi/dump.rdb
 recommenderApi/seenTable.pkl
 recommenderApi/dump.rdb
 recommenderApi/recommender/reviewsRecommender.py
+recommenderApi/recommender/users.pkl
+.gitignore
+recommenderApi/recommender/collobarative/anonymous_data.pkl
+.gitignore
+recommenderApi/recommender/collobarative/itemsTrackers.pkl
+recommenderApi/recommender/collobarative/MF_items_model.pkl
+recommenderApi/recommender/collobarative/MF_mobiles_model.pkl
+recommenderApi/recommender/collobarative/mobileTrackers.pkl
+recommenderApi/recommender/collobarative/seenTable.pkl
+recommenderApi/recommender/gamification/tfidf.pkl
+recommenderApi/recommender/mobiles1/mobiles.pkl
+recommenderApi/recommender/reviews/crevs.pkl
+recommenderApi/recommender/reviews/prevs.pkl
+recommenderApi/recommender/reviews/stopwords.pkl
+.gitignore
+recommenderApi/recommender/reviews/vectorizer.pkl
+recommenderApi/recommenderApi/vars.pkl
