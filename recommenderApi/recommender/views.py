@@ -136,6 +136,7 @@ def start_training(request) -> JsonResponse:
                 except:
                     date =  MongoConnection().get_last_training_time()
             print('start async task')
+            print(date)
             start_async.delay(date, first)
             # train_and_update(date, first=first)
             response = {
