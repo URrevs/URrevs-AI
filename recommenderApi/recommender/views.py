@@ -134,8 +134,11 @@ def start_training(request) -> JsonResponse:
             except:
                 first = False
             # Sync training run here
-            var = load(open('recommenderApi/vars.pkl', 'rb'))
-            train_and_update(var['time'], first=first)
+            if first: date = dt(2018, 1, 1)
+            else: 
+                var = load(open('recommenderApi/vars.pkl', 'rb'))
+                date = var['date']
+            train_and_update(date, first=first)
             response = {
                 'message': 'Training started'
             }
