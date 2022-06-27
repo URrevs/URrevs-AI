@@ -1,17 +1,23 @@
+from copy import copy
 from pickle import dump, load
 import pandas as pd
 from pyparsing import Or
 from save_load_data import *
 
-userDic={}
+userDic = {}
+
+
 def enum(**enums):
     return type('Enum', (), enums)
 
 
-Tracker = enum(FULL_SCREEN=0.2, LIKE_OR_DISLIKE=0.3,
-               SEE_MORE=0.1, COMMENT=0.4, DONT_LIKE=-1)
+Tracker = enum(FULL_SCREEN_REVIEW=0.2, LIKE_OR_DISLIKE_REVIEW=0.3,
+               SEE_MORE_REVIEW=0.1, COMMENT_REVIEW=0.4, DONT_LIKE=-1,
+               UPVOTE_QUESTION=0.25, DOWNVOTE_QUESTION=-0.25, ANSWER_QUESTION=0.33,
+               FULL_SCREEN_QUESTION=0.25, ASK_QUESTION=0.17)
 
-Identifier = enum(PRODUCT=0, COMPANY=1)
+Identifier = enum(PRODUCT_REVIEW=0, PRODUCT_QUESTION=1,
+                  COMPANY_REVIEW=2, COMPANY_QUESTION=3)
 
 
 def addIdentifierToID(id, identifier):
@@ -56,10 +62,10 @@ def calculateUniqness():
 
 def addTrackers(df: pd.DataFrame, trackers: list, trackerType: Tracker, identifier: Identifier):
     for tracker in trackers:
-        userDic[tracker['id']]=1
-        if tracker['review'][0] != str(Identifier.PRODUCT) and tracker['review'][0] != str(Identifier.COMPANY):
-            tracker['review'] = addIdentifierToID(
-                tracker['review'], identifier)
+       
+        userDic[tracker['id']] = 1
+        if len(tracker['review'])==24:
+            tracker['review'] = addIdentifierToID(tracker['review'], identifier)   
         if ~rowIsExist(df, tracker['id'], tracker['review']):
             newRow = {'user_id': [tracker['id']],
                       'item_id': [tracker['review']],
@@ -76,8 +82,8 @@ def addTrackers(df: pd.DataFrame, trackers: list, trackerType: Tracker, identifi
 
 
 previewTrackers = load(open('prevs.pkl', 'rb'))
-
-
+previewTrackers1=   load(open('prevs.pkl', 'rb'))
+previewTrackers2= load(open('prevs.pkl', 'rb'))
 
 col = {'user_id': [],
        'item_id': [],
@@ -86,5 +92,10 @@ col = {'user_id': [],
 # Create DataFrame
 df = pd.DataFrame(col)
 
-df=loadDatFarame('user2review.pkl')
+df = loadDatFarame('user2review.pkl')
+""" df = addTrackers(df, previewTrackers, Tracker.COMMENT_REVIEW, Identifier.PRODUCT_REVIEW)
+df = addTrackers(df, previewTrackers1, Tracker.FULL_SCREEN_REVIEW, Identifier.COMPANY_REVIEW)
+df = addTrackers(df, previewTrackers2, Tracker.ASK_QUESTION, Identifier.COMPANY_QUESTION)
+saveDatFarame('user2review.pkl',df) """
+#print(len(df['item_id'][0]))
 print(df)
