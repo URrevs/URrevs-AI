@@ -173,7 +173,7 @@ def update_values(date: dt):
         send_date(time)
         print('sent date')
     except Exception as e:
-        print(e)
+        print("Updating Values", e)
         pass
     
 def train_and_update(date: dt, first: bool = False):
