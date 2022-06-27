@@ -80,7 +80,11 @@ def index(request):
     # print('start async task')
     # send_emails.delay(22)
     # print('after async task')
-    start_async2.delay()
+    # start_async2.delay()
+    users = MongoConnection().get_users_mongo(dt(2020, 1,1))
+    for user in users:
+        print(user)
+        break
     #     sqlite.create_new_Preview_ifNotExist(review)
     # update_values(dt(2020, 1,1))
     return JsonResponse({'message': 'Deployed Successfully'})

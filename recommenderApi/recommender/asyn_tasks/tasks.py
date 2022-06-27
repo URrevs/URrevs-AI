@@ -3,8 +3,7 @@ from celery import task, shared_task
 from recommender.collobarative.train import train_and_update
 from recommender.mongoDB.getData import MongoConnection
 from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.imports import dt
-from recommenderApi.imports import MongoClient, certifi, dt, ObjectId
+from recommenderApi.imports import MongoClient, certifi, dt, ObjectId, dump, load
 from recommenderApi.settings import MONGODB_LINK, MONGODB_NAME, ROUND_NUM_OF_REVIEWS
 from recommender.sqliteDB.data import SQLite_Database
 
@@ -19,6 +18,15 @@ from recommender.sqliteDB.data import SQLite_Database
 @shared_task
 def start_async(date, first):
     print('start async task')
+    print(dt.fromisoformat(date))
+    print('check try block')
+    try: 
+        vars = load(open('recommenderApi/vars.pkl', 'rb'))
+    except:
+        vars = {}
+    print('end try block')
+    dump(vars, open('recommenderApi/vars.pkl', 'wb'))
+    print('dump file')
     train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
     return
