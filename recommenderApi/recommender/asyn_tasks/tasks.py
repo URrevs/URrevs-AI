@@ -20,6 +20,15 @@ def start_async(date, first):
     print('end async task')
     return
 
+@shared_task
+def start_async2():
+    print('start async task')
+    users = MongoConnection().get_users_mongo(dt(2020, 1,1))
+    for user in users:
+        print(user)
+    print('end async task')
+    return
+
 # @task
 # def send_schedualed_emails():
 #     print('Sending emails... to user...')

@@ -15,7 +15,7 @@ from .fill_db import *
 from recommender.gamification.grading import Grading, FileData
 from recommender.mongoDB.getData import *
 from recommender.mongoDB.sendData import *
-from recommender.asyn_tasks.tasks import start_async
+from recommender.asyn_tasks.tasks import start_async, start_async2
 from recommender.sqliteDB.data import *
 from recommender.collobarative.recommend import *
 # from recommender.collobarative.train import *
@@ -80,10 +80,7 @@ def index(request):
     # print('start async task')
     # send_emails.delay(22)
     # print('after async task')
-    reviews = MongoConnection().get_companies_mongo()
-    # sqlite = SQLite_Database()
-    for review in reviews:
-        print(review)
+    start_async2.delay()
     #     sqlite.create_new_Preview_ifNotExist(review)
     # update_values(dt(2020, 1,1))
     return JsonResponse({'message': 'Deployed Successfully'})

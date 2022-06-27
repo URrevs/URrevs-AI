@@ -155,7 +155,6 @@ def update_values(date: dt):
         print('removed expired date from seen table')
         sqlite = SQLite_Database()
         for user in items_trackers_file.usersDic.keys():
-            print(user)
             u = sqlite.get_user(id = user)
             if u != None:
                 [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
