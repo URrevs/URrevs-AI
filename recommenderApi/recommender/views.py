@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework import status
 # from django import forms
 from recommenderApi.imports import *
+from recommender.collobarative.train import update_values
 from recommenderApi.settings import *
 # from recommender.reviewsRecommender import ReviewContentRecommender
 from django.views.decorators.csrf import csrf_exempt
@@ -79,6 +80,12 @@ def index(request):
     # print('start async task')
     # send_emails.delay(22)
     # print('after async task')
+    reviews = MongoConnection().get_companies_mongo()
+    # sqlite = SQLite_Database()
+    for review in reviews:
+        print(review)
+    #     sqlite.create_new_Preview_ifNotExist(review)
+    # update_values(dt(2020, 1,1))
     return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:
@@ -135,6 +142,7 @@ def start_training(request) -> JsonResponse:
                     date = var['date']
                 except:
                     date =  MongoConnection().get_last_training_time()
+            
             print('start async task')
             print(date)
             start_async.delay(date, first)

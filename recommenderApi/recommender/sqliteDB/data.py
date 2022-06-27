@@ -156,7 +156,10 @@ class SQLite_Database:
         mobiles_lst = []
         for mobile in mobiles:
             mobiles_lst.append(mobile)
-        vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        try:
+            vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        except:
+            vars = {}
         vars['mobiles'] = mobiles_lst
         dump(vars, open('recommenderApi/vars.pkl', 'wb'))
         return mobiles_lst

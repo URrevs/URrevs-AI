@@ -25,11 +25,13 @@ class MongoConnection:
             return False, []
 
     def get_users_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         users_col = self.db['users']
         users = users_col.find({'createdAt': {'$gte': date}}, {'_id': 1, 'name': 1})
         return users
 
     def get_product_reviews_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_col = self.db['prevs']
         projection = {
             '_id': 1, 'user': 1, 'phone': 1, 'pros': 1, 'cons': 1, 'createdAt': 1, 'generalRating': 1,
@@ -39,6 +41,7 @@ class MongoConnection:
         return prevs
 
     def get_company_reviews_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_col = self.db['crevs']
         projection = {
             '_id': 1, 'user': 1, 'company': 1, 'pros': 1, 'cons': 1, 'createdAt': 1, 'generalRating': 1
@@ -47,11 +50,13 @@ class MongoConnection:
         return crevs
 
     def get_companies_mongo(self):
+        self.db = self.connect_to_mongo()
         companies_col = self.db['companies']
         companies = companies_col.find({}, {'_id': 1, 'nameLower': 1})
         return companies
 
     def get_phones_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         phones_col = self.db['nphones']
         projection = {
             '_id': 1, 'name': 1, 'company': 1, 'price': 1, 'releaseDate': 1, 'length': 1, 'width': 1,
@@ -68,6 +73,7 @@ class MongoConnection:
 
     # pqueslikes, question
     def get_product_reviews_likes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_likes_col = self.db['prevslikes']
         likes = prevs_likes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
         # check if this like is new or not
@@ -79,6 +85,7 @@ class MongoConnection:
     
     # cqueslikes, question
     def get_company_reviews_likes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_likes_col = self.db['crevslikes']
         likes = crevs_likes_col.find({'createdAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
         # check if this like is new or not
@@ -90,6 +97,7 @@ class MongoConnection:
 
     # pquesunlikes, question
     def get_product_reviews_unlikes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_unlikes_col = self.db['prevsunlikes']
         unlikes = prevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # check if this unlike is new or not
@@ -101,6 +109,7 @@ class MongoConnection:
 
     # cquesunlikes, question
     def get_company_reviews_unlikes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_unlikes_col = self.db['crevsunlikes']
         unlikes = crevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # check if this unlike is new or not
@@ -113,6 +122,7 @@ class MongoConnection:
 
     # pquesanswers, question
     def get_product_reviews_comments_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_comments_col = self.db['prevscomments']
         comments = prevs_comments_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the comment
@@ -124,6 +134,7 @@ class MongoConnection:
 
     # cquesanswers, question
     def get_company_reviews_comments_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_comments_col = self.db['crevscomments']
         comments = crevs_comments_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the comment
@@ -134,6 +145,7 @@ class MongoConnection:
         # return comments
 
     def get_product_reviews_seemores_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_seemores_col = self.db['prevsseemores']
         seemores = prevs_seemores_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the seemore
@@ -144,6 +156,7 @@ class MongoConnection:
         # return seemores
 
     def get_company_reviews_seemores_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_seemores_col = self.db['crevsseemores']
         seemores = crevs_seemores_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the seemore
@@ -155,6 +168,7 @@ class MongoConnection:
 
     # pquesfullscreens, question
     def get_product_reviews_fullscreens_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_fullscreens_col = self.db['prevsfullscreens']
         fullscreens = prevs_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the fullscreen
@@ -166,6 +180,7 @@ class MongoConnection:
 
     # cquesfullscreens, question
     def get_company_reviews_fullscreens_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_fullscreens_col = self.db['crevsfullscreens']
         fullscreens = crevs_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the fullscreen
@@ -177,6 +192,7 @@ class MongoConnection:
 
     # pqueshates, question
     def get_product_reviews_hates_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         prevs_hates_col = self.db['prevshates']
         hates = prevs_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the hate
@@ -188,6 +204,7 @@ class MongoConnection:
 
     # cqueshates, question
     def get_company_reviews_hates_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
         crevs_hates_col = self.db['crevshates']
         hates = crevs_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the hate
@@ -209,18 +226,26 @@ class MongoConnection:
         for user in users:
             sqlite.create_new_user_ifNotExist(user)
         print('add them to sqlite db')
+        print('get all companies mongo')
         companies = self.get_companies_mongo()
         for company in companies:
             sqlite.create_new_company_ifNotExist(company)
+        print('add them to sqlite db')
+        print('get all phones mongo')
         mobiles = self.get_phones_mongo(date)
         for mobile in mobiles:
             sqlite.create_new_mobile_ifNotExist(mobile)
+        print('add them to sqlite db')
+        print('get all prevs mongo')
         reviews = self.get_product_reviews_mongo(date)
         for review in reviews:
             sqlite.create_new_Preview_ifNotExist(review)
+        print('add them to sqlite db')
+        print('get all crevs mongo')
         reviews = self.get_company_reviews_mongo(date)
         for review in reviews:
             sqlite.create_new_Creview_ifNotExist(review)
+        print('add them to sqlite db')
         print('finish adding all users, companies and mobiles')
 
     def get_all_items_trackers_mongo(self, date: dt):

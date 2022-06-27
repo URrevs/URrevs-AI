@@ -1,6 +1,9 @@
 from time import sleep
 from celery import task, shared_task
 from recommender.collobarative.train import train_and_update
+from recommender.mongoDB.getData import MongoConnection
+from recommender.sqliteDB.data import SQLite_Database
+from recommenderApi.imports import dt
 
 # @shared_task
 # def send_emails(user = 10):
@@ -13,7 +16,7 @@ from recommender.collobarative.train import train_and_update
 @shared_task
 def start_async(date, first):
     print('start async task')
-    train_and_update(date, first=first)
+    train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
     return
 

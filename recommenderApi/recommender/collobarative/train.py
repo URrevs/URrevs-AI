@@ -130,7 +130,6 @@ def update_values(date: dt):
         print('got all items trackers')
         items_trackers_file = Trackers(loadfile=True)
         # items_trackers_file.resetTrackersFile()
-        
         for item_type in items_trackers.keys():
             for tracker_type in items_trackers[item_type].keys():
                 items_trackers_file.addItemsTrackers(items_trackers[item_type][tracker_type], Review_Tracker[tracker_type], item_type=='company')
@@ -156,9 +155,11 @@ def update_values(date: dt):
         print('removed expired date from seen table')
         sqlite = SQLite_Database()
         for user in items_trackers_file.usersDic.keys():
+            print(user)
             u = sqlite.get_user(id = user)
-            [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
-            sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
+            if u != None:
+                [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
+                sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
         print('updated user ratios')
         for item in items_trackers_file.interactions.keys():
             update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
@@ -178,6 +179,10 @@ def update_values(date: dt):
 def train_and_update(date: dt, first: bool = False):
     # if first:
     #     date = dt(2022, 5, 1)
+    if first:
+        Trackers().resetTrackersFile()
+        Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
+        SeenTable().resetSeenTable()
     update_values(date)
     train(first=first)
 
