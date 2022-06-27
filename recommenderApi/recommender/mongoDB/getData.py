@@ -10,7 +10,9 @@ class MongoConnection:
         return None
     
     def connect_to_mongo(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
-        client = MongoClient(mongodb_link, tlsCAFile=certifi.where())
+        print(mongodb_link)
+        # client = MongoClient(mongodb_link, tlsCAFile=certifi.where())
+        client = MongoClient(mongodb_link)
         self.db = client[mongodb_name]
         return self.db
     
