@@ -79,6 +79,13 @@ class Prev_Likes(models.Model):
     def __str__(self) -> str:
         return f"{self.userId} likes {self.reviewId}"
 #-----------------------------------------------------------------------------------------------------
+class Prev_Most_Liked(models.Model):
+    userId      = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    reviewId    = models.ForeignKey(PReview, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.userId} most likes {self.reviewId}"
+#-----------------------------------------------------------------------------------------------------
 class CReview(models.Model):
     id              = models.CharField(max_length=100, primary_key=True)
     userId          = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -107,6 +114,13 @@ class Crev_Likes(models.Model):
 
     def __str__(self) -> str:
         return f"{self.userId} likes {self.reviewId}"
+#-----------------------------------------------------------------------------------------------------
+class Crev_Most_Liked(models.Model):
+    userId      = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    reviewId    = models.ForeignKey(CReview, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.userId} most likes {self.reviewId}"
 #-----------------------------------------------------------------------------------------------------
 class PQuestion(models.Model):
     id                  = models.CharField(max_length=100, primary_key=True)

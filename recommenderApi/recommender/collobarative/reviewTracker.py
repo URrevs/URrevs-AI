@@ -1,8 +1,9 @@
 from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.imports import pd, dump, load, Review_Tracker, Mobile_Tracker
+from recommenderApi.imports import pd, dump, load, Review_Tracker, Mobile_Tracker, dt
 from recommender.collobarative.save_load_data import *
 from recommenderApi.settings import *
 from recommender.collobarative.recommend import MatrixFactorization
+from recommender.mongoDB.getData import MongoConnection
 
 class Trackers:
     def __init__(self, filepath = 'recommender/collobarative/itemsTrackers.pkl', loadfile = False):
@@ -12,8 +13,29 @@ class Trackers:
         self.usersDic = {}
         self.df = None
         if loadfile:
-            self.df: pd.DataFrame = loadDataFrame(filepath)
-
+            try: self.df: pd.DataFrame = loadDataFrame(filepath)
+            except:
+                # here recalculate the file again
+                mongo = MongoConnection()
+                if filepath == 'recommender/collobarative/itemsTrackers.pkl':
+                    # collect all trackers again
+                    items_trackers = mongo.get_all_items_trackers_mongo(date=dt(2022, 1, 1))
+                    # recalculate the trackers
+                    for item_type in items_trackers.keys():
+                        for tracker_type in items_trackers[item_type].keys():
+                            self.addItemsTrackers(items_trackers[item_type][tracker_type], Review_Tracker[tracker_type], item_type=='company')
+                else:
+                    # collect all trackers again
+                    mobile_trackers = mongo.get_all_products_trackers_mongo(date=dt(2022, 1, 1))
+                    # recalculate the trackers
+                    for item_type in mobile_trackers.keys():
+                        for tracker_type in mobile_trackers[item_type].keys():
+                            self.addMobilesTrackers(mobile_trackers[item_type][tracker_type], Mobile_Tracker[tracker_type])
+                # save the file
+                self.saveTrackers()
+                
+        
+                
     def addIdentifierToID(self, id, identifier):
         return f'{identifier}{id}'
 
@@ -28,6 +50,8 @@ class Trackers:
         else: item_type = '1'
         return self.df.iloc[self.df.loc[(self.df['user_id'] == userId) & (self.df['item_id'].str.startswith(item_type)), 'rating'].idxmax()]['item_id']
 
+    def getHatesReviews(self, userId):
+        return self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] == REVIEW_DONT_LIKE), 'item_id'].values
 
     def getMaxNLikedMobile(self, userId, n):
         # model = MatrixFactorization(columns=['user_id', 'product_id', 'rating', 'rating_pred'])
@@ -189,6 +213,16 @@ class Trackers:
     def down_old_items_grade(self):
         for user in self.usersDic.keys():
             self.downgradeRateByUser(user)
+        return None
+
+    def fill_most_liked_items(self):
+        sql = SQLite_Database()
+        for user in self.usersDic.keys():
+            # get the most liked items for the user
+            try: sql.update_add_Most_liked_Prev(user, self.getMostLikedReview(user)[1:])
+            except:
+                try: sql.update_add_Most_liked_Crev(user, self.getMostLikedReview(user, itemType='company')[1:])
+                except: pass
         return None
 
     def saveTrackers(self):

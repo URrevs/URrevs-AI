@@ -106,6 +106,13 @@ class SQLite_Database:
                 return None
         return mobile
 
+    def get_company_from_mobile(self, mobile: str):
+        try:
+            mobile = Product.objects.get(id=mobile)
+            return mobile.company
+        except Mobile.DoesNotExist:
+            return None
+    
     def create_Preview(self, id: str, user: str, phone: str, rate: int, rate1: int, rate2: int, rate3: int,
                 rate4: int, rate5: int, rate6: int, date: dt, pros: str, cons: str):
         try:
@@ -120,16 +127,20 @@ class SQLite_Database:
             return None
 
     def create_new_Preview_ifNotExist(self, review):
-        id, user, phone, rate = str(review['_id']), str(review['user']), str(review['phone']), review['generalRating']
-        rate1, rate2, rate3 = review['uiRating'], review['manQuality'], review['valFMon']
-        rate4, rate5, rate6 = review['camera'], review['callQuality'], review['batteryRating']
-        date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
-        user = User.objects.get(id=user)
-        phone = Mobile.objects.get(id=phone)
-        review = PReview.objects.get_or_create(id=id, userId=user, productId=phone, rating=rate, time=date, 
-            pros=pros, cons=cons, rating1=rate1, rating2=rate2, rating3=rate3, rating4=rate4, rating5=rate5,
-            rating6=rate6)
-        return review
+        try:
+            id, user, phone, rate = str(review['_id']), str(review['user']), str(review['phone']), review['generalRating']
+            rate1, rate2, rate3 = review['uiRating'], review['manQuality'], review['valFMon']
+            rate4, rate5, rate6 = review['camera'], review['callQuality'], review['batteryRating']
+            date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
+            user = User.objects.get(id=user)
+            phone = Mobile.objects.get(id=phone)
+            review = PReview.objects.get_or_create(id=id, userId=user, productId=phone, rating=rate, time=date, 
+                pros=pros, cons=cons, rating1=rate1, rating2=rate2, rating3=rate3, rating4=rate4, rating5=rate5,
+                rating6=rate6)
+            return review
+        except Exception as e:
+            print(e)
+            return None
 
     def get_Preview(self, id: str = ''):
         if id == '':
@@ -156,10 +167,8 @@ class SQLite_Database:
         mobiles_lst = []
         for mobile in mobiles:
             mobiles_lst.append(mobile)
-        try:
-            vars = load(open('recommenderApi/vars.pkl', 'rb'))
-        except:
-            vars = {}
+        try: vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        except: vars = {}
         vars['mobiles'] = mobiles_lst
         dump(vars, open('recommenderApi/vars.pkl', 'wb'))
         return mobiles_lst
@@ -208,6 +217,37 @@ class SQLite_Database:
             print(e)
             return False
 
+    def add_Most_liked_Prev(self, user: str, review: str):
+        try:
+            user = User.objects.get(id=user)
+            review = PReview.objects.get(id=review)
+            like = Prev_Most_Liked(userId=user, reviewId=review)
+            like.save()
+            return like
+        except Exception as e:
+            print(e)
+            return None
+    
+    def update_add_Most_liked_Prev(self, user: str, review: str):
+        try:
+            user = User.objects.get(id=user)
+            review = PReview.objects.get(id=review)
+            like = Prev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Prev_Most_Liked']
+            like.save()
+            return like
+        except Exception as e:
+            print(e)
+            return None
+    
+    def get_Most_liked_Prev(self, user: str):
+        try:
+            user = User.objects.get(id=user)
+            like = Prev_Most_Liked.objects.get(userId=user)
+            return like.reviewId
+        except Exception as e:
+            # print(e)
+            return None
+
     def create_Creview(self, id: str, user: str, company: str, rate: int, date: dt, pros: str, cons: str):
         try:
             user = User.objects.get(id=user)
@@ -220,13 +260,17 @@ class SQLite_Database:
             return None
     
     def create_new_Creview_ifNotExist(self, review):
-        id, user, company, rate = str(review['_id']), str(review['user']), str(review['company']), review['generalRating']
-        date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
-        user = User.objects.get(id=user)
-        company = Company.objects.get(id=company)
-        review = CReview.objects.get_or_create(id=id, userId=user, companyId=company, rating=rate, time=date, 
-            pros=pros, cons=cons)
-        return review
+        try:
+            id, user, company, rate = str(review['_id']), str(review['user']), str(review['company']), review['generalRating']
+            date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
+            user = User.objects.get(id=user)
+            company = Company.objects.get(id=company)
+            review = CReview.objects.get_or_create(id=id, userId=user, companyId=company, rating=rate, time=date, 
+                pros=pros, cons=cons)
+            return 
+        except Exception as e:
+            print(e)
+            return None
 
     def get_Creview(self, id: str = ''):
         if id == '':
@@ -237,6 +281,16 @@ class SQLite_Database:
             except CReview.DoesNotExist:
                 return None
         return review
+    
+    def get_Creviews_by_companies(self, companies = []):
+        revs = []
+        for company in companies:
+            revs.append(CReview.objects.filter(companyId=company))
+        revs_lst = []
+        for company_revs in revs:
+            for rev in company_revs:
+                revs_lst.append(rev.id)
+        return revs_lst
 
     def update_Crev_interaction(self, review: str, interactions: list):
         try:
@@ -259,6 +313,37 @@ class SQLite_Database:
         except Exception as e:
             print(e)
             return False
+
+    def add_Most_liked_Crev(self, user: str, review: str):
+        try:
+            user = User.objects.get(id=user)
+            review = CReview.objects.get(id=review)
+            like = Crev_Most_Liked(userId=user, reviewId=review)
+            like.save()
+            return like
+        except Exception as e:
+            print(e)
+            return None
+    
+    def update_add_Most_liked_Crev(self, user: str, review: str):
+        try:
+            user = User.objects.get(id=user)
+            review = CReview.objects.get(id=review)
+            like = Crev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Crev_Most_Liked']
+            like.save()
+            return like
+        except Exception as e:
+            print(e)
+            return None
+        
+    def get_Most_liked_Crev(self, user: str):
+        try:
+            user = User.objects.get(id=user)
+            like = Crev_Most_Liked.objects.get(userId=user)
+            return like.reviewId
+        except Exception as e:
+            # print(e)
+            return None    
 
     def add_Crev_like(self, user: str, review: str):
         try:

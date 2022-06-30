@@ -9,6 +9,7 @@ from recommender.collobarative.train import update_values
 from recommenderApi.settings import *
 # from recommender.reviewsRecommender import ReviewContentRecommender
 from django.views.decorators.csrf import csrf_exempt
+from recommender.collobarative.train import train_and_update
 import json
 from .models import *
 from .fill_db import *
@@ -45,6 +46,7 @@ def index(request):
     # train_and_update(dt(2020, 1,1), first=False)
     # Trackers(loadfile=True).showTrackers()
     # Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).showTrackers()
+    # print(Trackers(loadfile=True).getHatesReviews('62bcf0887098c747b5c99613'))
     # train(first = True)
     # SeenTable(loadfile=True).resetSeenTable()
     # print('seentable============================')
@@ -87,9 +89,15 @@ def index(request):
     #     print(user)
     #     break
     #     sqlite.create_new_Preview_ifNotExist(review)
+    # sql = SQLite_Database()
+    # sql.update_add_Most_liked_Prev('626b28707fe7587a42e3dfeb', '627406a18cc1cefd58623f9e')
+    # like = sql.get_Most_liked_Prev('626b28707fe7587a42e3dfeb')
+    # print(like)
     # update_values(dt(2020, 1,1))
-    Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
+    # Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
     # Similar_Phones().min_max_scale()
+    # train_and_update(dt(2022, 6, 30), first=0)
+
     return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:
@@ -348,24 +356,24 @@ def get_review_grade(request):
 def get_similiar_phones(request, phoneId):
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
-            try: SQLite_Database().get_mobile(phoneId)
-            except:
+            if SQLite_Database().get_mobile(phoneId) == None:
                 error = {
                     'success': False,
                     'status': 'invalid phone id'
                 }
                 return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
-            try: recs = Similar_Phones().generate_20_similars(phoneId)
+            try: 
+                recs = Similar_Phones().generate_20_similars(phoneId)
+                response = {
+                    'similiar_phones': recs
+                }
+                return JsonResponse(response, status=status.HTTP_200_OK)
             except:
                 error = {
                     'success': False,
                     'status': 'process failed'
                 }
                 return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            response = {
-                'similiar_phones': recs
-            }
-            return JsonResponse(response, status=status.HTTP_200_OK)
         else:
             error = {
                 'success': False,

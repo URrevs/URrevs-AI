@@ -167,3 +167,4 @@ recommenderApi/celerybeat-schedule.dir
 recommenderApi/temp-6496.rdb
 celery.txt
 recommenderApi/recommenderApi/vars-original.pkl
+recommenderApi/commands.txt

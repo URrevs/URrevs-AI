@@ -69,6 +69,7 @@ class Similar_Phones:
         length = self.table.shape[0]
         newDF = pd.DataFrame()
         # for spec in ['os']:
+        # weight = 2, fast charging = 2
         for spec in ['price', 'releaseDate', 'company', 'dimensions', 'batteryCapacity', 'os']:
             if spec == 'price':
                 col = self.table.loc[:, [spec]].astype(float).fillna(0)
@@ -124,5 +125,4 @@ class Similar_Phones:
             recommendations.extend(self.table.iloc[indices[i]].index)
         # print(recommendations[1:])
         return recommendations[1:]
-        # print(indices)
 
