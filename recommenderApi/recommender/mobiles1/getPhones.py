@@ -114,7 +114,7 @@ class Similar_Phones:
     def generate_20_similars(self, phoneId: str):
         self.table = pd.read_csv('recommender/mobiles1/mobiles_table_mod.csv', index_col='_id')
         self.table.fillna(0, inplace = True)
-        print(self.table)
+        # print(self.table)
         nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=21, algorithm='ball_tree')
         nbrs.fit(self.table.values)
         # print(self.table.loc[phoneId, :].values)
@@ -122,6 +122,7 @@ class Similar_Phones:
         recommendations = []
         for i in range(len(indices)):
             recommendations.extend(self.table.iloc[indices[i]].index)
-        print(recommendations[1:])
+        # print(recommendations[1:])
+        return recommendations[1:]
         # print(indices)
 
