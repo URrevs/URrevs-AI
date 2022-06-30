@@ -100,8 +100,8 @@ class Trackers:
                         else: sqlite.add_Prev_like(user=tracker['id'], review=tracker['review'][1:])
                         self.updateLikes(tracker['review'], 1)
                 elif trackerType == REVIEW_UNLIKE: # -0.3
-                    if (not itemType and not sqlite.check_Prev_like(user=tracker['id'], review=tracker['review'][1:]))\
-                    or (itemType and not sqlite.check_Crev_like(user=tracker['id'], review=tracker['review'][1:])):
+                    if (not itemType and sqlite.check_Prev_like(user=tracker['id'], review=tracker['review'][1:]))\
+                    or (itemType and sqlite.check_Crev_like(user=tracker['id'], review=tracker['review'][1:])):
                         if itemType: sqlite.remove_Crev_like(user=tracker['id'], review=tracker['review'][1:])
                         else: sqlite.remove_Prev_like(user=tracker['id'], review=tracker['review'][1:])
                         self.updateLikes(tracker['review'], -1)
@@ -120,11 +120,18 @@ class Trackers:
                     self.df = self.addNewRowToDataFrame(newRow)
                 # get the rate on (user, item) row in the dataframe
                 rate = self.getRate(tracker['id'], tracker['review']).values[0]
-                # if the tracker isn't hate then append the value else set the value
-                rate = (rate + trackerType) if trackerType != REVIEW_DONT_LIKE else trackerType
+                # if the tracker is hate then append the value 
+                # else if tracker is unlike decrease the value to minimum 0
+                if trackerType == REVIEW_DONT_LIKE: rate = trackerType 
+                elif trackerType == REVIEW_UNLIKE: 
+                    if rate != -1:
+                        rate -= min(rate, abs(trackerType))
+                        if rate < MIN_LEVEL_OLD_TRACKERS_REACH: rate = MIN_LEVEL_OLD_TRACKERS_REACH
+                else:
+                    if rate == -1: rate = -0.5 
+                    rate = (rate + trackerType)
                 # save the rate between 0 and 1
                 if rate > 1: rate = 1
-                elif rate < 0 and rate != REVIEW_DONT_LIKE: rate = MIN_LEVEL_OLD_TRACKERS_REACH # 0.1
                 # add the row to the trackers list to prevent duplicates
                 trackerlst.append([f"{tracker['id']}{tracker['review']}"])
                 # if the row (user, item) isn't in list of all trackers so this row first time to appear

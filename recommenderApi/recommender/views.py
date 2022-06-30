@@ -20,6 +20,7 @@ from recommender.sqliteDB.data import *
 from recommender.collobarative.recommend import *
 # from recommender.collobarative.train import *
 from recommender.recommend import *
+from recommender.mobiles1.getPhones import Similar_Phones
 # from recommender.mobiles.getPhones import get_phones
 
 # Create your views here.
@@ -87,6 +88,8 @@ def index(request):
     #     break
     #     sqlite.create_new_Preview_ifNotExist(review)
     # update_values(dt(2020, 1,1))
+    Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
+    # Similar_Phones().min_max_scale()
     return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:

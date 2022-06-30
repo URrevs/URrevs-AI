@@ -44,8 +44,15 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     if round <= (200//ROUND_NUM_OF_REVIEWS):
         items_interactions_existance_check = check_interactions_existance(userId, search_in='items')
         if check_interactions_existance(userId, search_in='mobiles') and items_interactions_existance_check:
+            # get most reacted mobiles
             mobiles = get_max_n_liked_mobiles(userId, n=5)
+            # -------------------------------
+            # get companies for these mobiles
+            # get reviews for these companies
+            # -------------------------------
+            # get reviews of these mobiles
             reviews = SQLite_Database().get_Previews_by_mobiles(mobiles)
+            # get reference review & remove the flag from the start of id
             reference = get_most_liked_reviews(userId)[1:]
             reviews.append(reference)
             model = ReviewContentRecommender()
@@ -55,6 +62,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 n_recommendations=min([len(reviews)-1, 4+min([4, PQ])]), # 8 is calculated from 4 PR + 4 PQ but there is no PQ
                 items=reviews
                 )
+            # check if review not in hates for this user
             recs = [f'0{review}' for review in recs]
             productReviews, spaces = seen_table.check_if_review_shown_before(userId, recs[1:], spaces)
             PR = PR - len(productReviews)
@@ -64,7 +72,9 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             items_recommender = MatrixFactorization()
             product_recs, spaces1 = items_recommender.recommend_items(userId, n_recommendations=PR)
             reviews, spaces1 = seen_table.check_if_review_shown_before(userId, product_recs, spaces1)
-            productReviews.extend(reviews); spaces.extend(spaces1)
+            productReviews.extend(reviews)
+            try: spaces.extend(spaces1)
+            except: spaces = spaces1
             PR = PR - len(reviews)
 
             company_recs, spaces2 = items_recommender.recommend_items(userId, n_recommendations=CR, item_type=1)
@@ -109,6 +119,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                         total.append(review[1:])
                         seen_table.addToSeenTable(userId, [review])
                         CR -= 1
+                    if PR == 0 and CR == 0: break
             if PR > 0 or CR > 0:
                 for review in reviews:
                     if review[1:] not in total:
@@ -122,7 +133,6 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         # save user data to not calculate it again
         users = load(open('recommender/users.pkl', 'rb'))
         if userId not in users.keys():
-        # if round == 1 and not more:
             users[userId] = {}
         users[userId][round-1] = [total, productReviews, companyReviews, productQuestions, companyQuestions]
         dump(users, open('recommender/users.pkl', 'wb'))

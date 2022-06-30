@@ -85,6 +85,7 @@ def update_ratios(diffs: list, old: list) -> list:
         parameters: interaction list and the old state list
         output: the new list of ratios
     '''
+    assert (sum(old) == 20)
     new = old.copy()
     diffs_min = diffs.copy()
     max = [MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION]
@@ -100,11 +101,12 @@ def update_ratios(diffs: list, old: list) -> list:
             min_idx = np.argmin(diffs_min)
             diffs_min[min_idx] = np.inf
             counter -= 1
-            if new[min_idx] > 1 or counter == 0:
+            if new[min_idx] > MIN_ITEM or counter == 0:
                 break
-        if max[max_idx] > old[max_idx] and old[min_idx] > MIN_ITEM and old[min_idx] != old[max_idx]:
+        if max[max_idx] > old[max_idx] and old[min_idx] > MIN_ITEM and min_idx != max_idx:
             new[max_idx] = old[max_idx] + 1
             new[min_idx] = old[min_idx] - 1
+    if sum(new) != ROUND_NUM_OF_REVIEWS: return old
     return new
 
 def update_counts(sqlite: SQLite_Database, itemType, itemId: str, val: list):
