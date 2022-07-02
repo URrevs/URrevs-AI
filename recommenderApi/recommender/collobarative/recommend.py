@@ -67,7 +67,14 @@ class MatrixFactorization:
             return 0
 
     def load_model(self, path: str = 'recommender/collobarative/MF_items_model.pkl'):
-        self.matrix_fact = load(open(path, 'rb'))
+        try: self.matrix_fact = load(open(path, 'rb'))
+        except:
+            if path == 'recommender/collobarative/MF_items_model.pkl': 
+                self.train()
+                self.save_model(model_path=path)
+            else: 
+                self.train(path = 'recommender/collobarative/mobileTrackers.pkl')
+                self.save_model(model_path=path)
 
     def recommend_items(self, user: str, n_recommendations: int = 10, item_type = 0): 
         self.load_model()
