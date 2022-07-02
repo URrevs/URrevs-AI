@@ -12,7 +12,8 @@ from recommender.reviews.reviewsRecommender import ReviewContentRecommender
 
 def train(first: bool = False):
     try:
-        vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        try: vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        except: vars = {}
         if first:
             print('------------------------------------ Start training ----------------------------------------')
             print('Training on items data')
@@ -41,7 +42,8 @@ def train(first: bool = False):
             print('------------------------------------ Start training items --------------------------------------')
             print('Training on items data')
             # Training on items data
-            items_epochs = vars['items_epochs']
+            try: items_epochs = vars['items_epochs']
+            except: items_epochs = 600
             while True:
                 items_model = MatrixFactorization(n_epochs=items_epochs)
                 train_rmse = items_model.online_train(path='recommender/collobarative/itemsTrackers.pkl',
@@ -58,7 +60,8 @@ def train(first: bool = False):
             print('----------------------------------- Start training mobiles -----------------------------------------')
             print('Training on mobiles data')
             # Training on mobiles data
-            mobiles_epochs = vars['mobiles_epochs']
+            try: mobiles_epochs = vars['mobiles_epochs']
+            except: mobiles_epochs = 30
             while True:
                 mobiles_model = MatrixFactorization(n_epochs=mobiles_epochs, columns=['user_id', 'product_id', 'rating', 'rating_pred'])
                 train_rmse = mobiles_model.online_train(path='recommender/collobarative/mobileTrackers.pkl',
@@ -185,6 +188,7 @@ def train_and_update(date: dt, first: bool = False):
     # if first:
     #     date = dt(2022, 5, 1)
     if first:
+        dump({}, open('recommenderApi/vars.pkl', 'wb'))
         Trackers().resetTrackersFile()
         Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
         SeenTable().resetSeenTable()
