@@ -47,7 +47,8 @@ class MatrixFactorization:
                 if self.alert: print('training started')
                 self.matrix_fact.fit(self.X_train, self.y_train)
                 if self.alert: print('model trained successfully')
-            return self.matrix_fact.train_rmse[-1]
+                return self.matrix_fact.train_rmse[-1]
+            return 0
         except Exception as e:
             print("may be no new data: ", e)
             return 0

@@ -23,20 +23,20 @@ def train(first: bool = False):
             train_rmse = items_model.train(path='recommender/collobarative/itemsTrackers.pkl',
                 test_size=0.2, reg = 0.005, gamma=0.5)
             test_rmse = items_model.test()
-            if train_rmse != 0 or test_rmse != 0:
-                print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-                vars['items_epochs'] = items_epochs
-                items_model.save_model()
+            # if train_rmse != 0 or test_rmse != 0:
+            print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
+            vars['items_epochs'] = items_epochs
+            items_model.save_model()
             
             # Training on mobiles data
             mobiles_epochs = 30
             mobiles_model = MatrixFactorization(n_epochs=mobiles_epochs, columns=['user_id', 'product_id', 'rating', 'rating_pred'])
             train_rmse = mobiles_model.train(path='recommender/collobarative/mobileTrackers.pkl', test_size=0.2)
             test_rmse = mobiles_model.test()
-            if train_rmse != 0 or test_rmse != 0:
-                print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
-                vars['mobiles_epochs'] = mobiles_epochs
-                mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
+            # if train_rmse != 0 or test_rmse != 0:
+            print('train_rmse: ', train_rmse, '  -  test_rmse: ', test_rmse)
+            vars['mobiles_epochs'] = mobiles_epochs
+            mobiles_model.save_model(model_path='recommender/collobarative/MF_mobiles_model.pkl')
                     
         else:
             print('------------------------------------ Start training items --------------------------------------')
