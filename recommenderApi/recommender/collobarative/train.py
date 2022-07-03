@@ -122,11 +122,11 @@ def get_all_mobiles_have_reviews():
     sqlite = SQLite_Database()
     return sqlite.get_all_mobiles_have_reviews()
 
-def update_values(date: dt):
+def update_values(date: dt, first: bool):
     try:
         print('----------------------------- Start Updating Values ------------------------------------')
         mongo = MongoConnection()
-        mongo.update_all_fixed_data_mongo(date=date)
+        mongo.update_all_fixed_data_mongo(date=date, first=first)
         print('updated all fixed data')
         review = ReviewContentRecommender()
         review.preprocessing()
@@ -192,7 +192,7 @@ def train_and_update(date: dt, first: bool = False):
         Trackers().resetTrackersFile()
         Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
         SeenTable().resetSeenTable()
-    update_values(date)
+    update_values(date, first)
     train(first=first)
 
 def check_engagement():

@@ -2,6 +2,7 @@ from recommender.models import Mobile
 from recommenderApi.imports import MongoClient, certifi, dt, ObjectId
 from recommenderApi.settings import MONGODB_LINK, MONGODB_NAME, ROUND_NUM_OF_REVIEWS
 from recommender.sqliteDB.data import SQLite_Database
+from recommender.mobiles1.getPhones import Similar_Phones
 
 class MongoConnection:
     def __init__(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
@@ -221,7 +222,7 @@ class MongoConnection:
         time = col.find_one({'name': 'AILastQuery'}, {'_id': 0, 'date': 1})
         return time['date']
 
-    def update_all_fixed_data_mongo(self, date:dt):
+    def update_all_fixed_data_mongo(self, date:dt, first:bool):
         sqlite = SQLite_Database()
         users = self.get_users_mongo(date)
         print('get all users mongo')
@@ -235,10 +236,19 @@ class MongoConnection:
         print('add them to sqlite db')
         print('get all phones mongo')
         mobiles = self.get_phones_mongo(date)
+        lst_phones = []
         for mobile in mobiles:
             sqlite.create_new_mobile_ifNotExist(mobile)
+            lst_phones.append(mobile)
         print('add them to sqlite db')
         print('get all prevs mongo')
+        try:
+            similar = Similar_Phones()
+            df = similar.make_comparison_table(lst_phones)
+            similar.min_max_scale(df, repeat = not first)
+            print('finish adding similar phones')
+        except:
+            print('failed to add similar phones')
         reviews = self.get_product_reviews_mongo(date)
         for review in reviews:
             sqlite.create_new_Preview_ifNotExist(review)

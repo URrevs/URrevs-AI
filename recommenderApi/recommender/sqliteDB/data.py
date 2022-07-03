@@ -192,18 +192,18 @@ class SQLite_Database:
             Prev_Likes.objects.get(userId=user, reviewId=review)
             return True
         except Exception as e:
-            print(e)
+            print('CHECK: ', e)
             return False
 
     def add_Prev_like(self, user: str, review: str):
         try:
             user = User.objects.get(id=user)
             review = PReview.objects.get(id=review)
-            like = Prev_Likes(userId=user, reviewId=review)
+            like = Prev_Likes.objects.create(userId=user, reviewId=review)
             like.save()
             return like
         except Exception as e:
-            print(e)
+            print('ADD: ', e)
             return None
 
     def remove_Prev_like(self, user: str, review: str):
@@ -214,7 +214,7 @@ class SQLite_Database:
             like.delete()
             return True
         except Exception as e:
-            print(e)
+            print('REMOVE: ', e)
             return False
 
     def add_Most_liked_Prev(self, user: str, review: str):
@@ -311,7 +311,7 @@ class SQLite_Database:
             Crev_Likes.objects.get(userId=user, reviewId=review)
             return True
         except Exception as e:
-            print(e)
+            print('CHECK: ', e)
             return False
 
     def add_Most_liked_Crev(self, user: str, review: str):
@@ -349,11 +349,11 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = CReview.objects.get(id=review)
-            like = Crev_Likes(userId=user, reviewId=review)
+            like = Crev_Likes.objects.create(userId=user, reviewId=review)
             like.save()
             return like
         except Exception as e:
-            print(e)
+            print('ADD: ', e)
             return None
 
     def remove_Crev_like(self, user: str, review: str):
@@ -364,5 +364,5 @@ class SQLite_Database:
             like.delete()
             return True
         except Exception as e:
-            print(e)
+            print('REMOVE: ', e)
             return False
