@@ -5,6 +5,7 @@ from recommender.mongoDB.sendData import send_date
 from recommender.sqliteDB.data import SQLite_Database
 from recommenderApi.imports import np, pd, dt, dump, load, Review_Tracker, Mobile_Tracker
 from recommender.collobarative.recommend import MatrixFactorization
+from recommender.gamification.grading import Grading
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, REMOVE_FROM_SEEN_TABLE_AFTER_DAYS, EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
 from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
 from recommender.models import *
@@ -185,14 +186,15 @@ def update_values(date: dt, first: bool):
         pass
     
 def train_and_update(date: dt, first: bool = False):
-    # if first:
-    #     date = dt(2022, 5, 1)
     if first:
         dump({}, open('recommenderApi/vars.pkl', 'wb'))
         Trackers().resetTrackersFile()
         Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
         SeenTable().resetSeenTable()
     update_values(date, first)
+    grading = Grading()
+    grading.update_tf_idf()
+    print('finish updating tf-idf vectorizers for gimification')
     train(first=first)
 
 def check_engagement():

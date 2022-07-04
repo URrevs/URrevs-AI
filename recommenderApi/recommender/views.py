@@ -13,7 +13,7 @@ from recommender.collobarative.train import train_and_update
 import json
 from .models import *
 from .fill_db import *
-from recommender.gamification.grading import Grading, FileData
+from recommender.gamification.grading import Grading
 from recommender.mongoDB.getData import *
 from recommender.mongoDB.sendData import *
 from recommender.asyn_tasks.tasks import start_async, start_async2
@@ -95,9 +95,11 @@ def index(request):
     # print(like)
     # update_values(dt(2020, 1,1))
     # Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
-    # Similar_Phones().min_max_scale()
+    # Similar_Phones().min_max_scale(repeat = False)
+    # Similar_Phones().min_max_scale(repeat = True)
+    # Similar_Phones().add_new_mobiles()
     # train_and_update(dt(2022, 6, 30), first=0)
-
+    Grading().calc_TF_IDF()
     return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:

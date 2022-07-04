@@ -1,5 +1,4 @@
-from re import S
-from recommender.mongoDB.getData import MongoConnection
+# from recommender.mongoDB.getData import MongoConnection
 from recommenderApi.imports import dt, dump, load, pd, NearestNeighbors
 from recommender.mobiles1.encoder import one_hot_encoder
 from recommender.mobiles1.utils import *
@@ -31,15 +30,16 @@ class Scaler:
         return self.in_
 
 class Similar_Phones:
-    def __init__(self, phone_id = None):
+    def __init__(self, phone_id = None, mongo = None):
         '''
             class to get similar phones to a given phone
             Args:  phone_id (str)
         '''
         self.phone_id = phone_id
+        self.mongo = mongo
 
     def get_phones_from_DB(self, date: dt):
-        phones = MongoConnection().get_phones_mongo(date)
+        phones = self.mongo.get_phones_mongo(date)
         self.mobiles = []
         for phone in phones:
             self.mobiles.append(phone)

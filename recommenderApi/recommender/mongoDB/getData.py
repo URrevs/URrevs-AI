@@ -243,7 +243,7 @@ class MongoConnection:
         print('add them to sqlite db')
         print('get all prevs mongo')
         try:
-            similar = Similar_Phones()
+            similar = Similar_Phones(mongo=self)
             df = similar.make_comparison_table(lst_phones)
             similar.min_max_scale(df, repeat = not first)
             print('finish adding similar phones')
