@@ -54,7 +54,8 @@ class Grading:
         arabic = self.readFile('nltk_data/corpora/stopwords/arabic')
         if len(lstStopWords) == 0:
             lstStopWords = english + arabic
-        dump(lstStopWords, open('recommender/static/data/stopwords.pkl', 'wb'))
+        lstStopWords = [word.encode('utf-8') for word in lstStopWords]
+        dump(lstStopWords, open('recommender/reviews/stopwords.pkl', 'wb'))
 
     def update_tf_idf(self):
         sqlite = SQLite_Database()

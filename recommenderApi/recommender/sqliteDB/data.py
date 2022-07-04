@@ -192,7 +192,7 @@ class SQLite_Database:
             Prev_Likes.objects.get(userId=user, reviewId=review)
             return True
         except Exception as e:
-            print('CHECK: ', e)
+            # print('CHECK: ', e)
             return False
 
     def add_Prev_like(self, user: str, review: str):
@@ -311,7 +311,7 @@ class SQLite_Database:
             Crev_Likes.objects.get(userId=user, reviewId=review)
             return True
         except Exception as e:
-            print('CHECK: ', e)
+            # print('CHECK: ', e)
             return False
 
     def add_Most_liked_Crev(self, user: str, review: str):

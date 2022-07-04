@@ -53,11 +53,12 @@ class TextFeatureExtraction:
             parameters: the list of stopwords
             output: file contains list of stopwords is generated
         '''
-        more_stopwords: list = ['آمين', 'أب', 'أخ', 'أفعل', 'أفعله', 'ؤلاء', 'إل', 'إم', 'ات', 'اتان', 'ارتد', 'ان', 'انفك', 'برح', 'تان', 'تبد', 'تحو', 'تعل', 'حد', 'حم', 'حي', 'خب', 'ذار', 'سيما', 'صه', 'ظل', 'ظن', 'عد', 'قط', 'مر', 'مكان', 'مكانكن', 'نب', 'هات', 'هب', 'واها', 'وراء', 'ال']
+        # more_stopwords: list = ['آمين', 'أب', 'أخ', 'أفعل', 'أفعله', 'ؤلاء', 'إل', 'إم', 'ات', 'اتان', 'ارتد', 'ان', 'انفك', 'برح', 'تان', 'تبد', 'تحو', 'تعل', 'حد', 'حم', 'حي', 'خب', 'ذار', 'سيما', 'صه', 'ظل', 'ظن', 'عد', 'قط', 'مر', 'مكان', 'مكانكن', 'نب', 'هات', 'هب', 'واها', 'وراء', 'ال']
         english = self.readFile('nltk_data/corpora/stopwords/english')
         arabic = self.readFile('nltk_data/corpora/stopwords/arabic')
         if len(lstStopWords) == 0:
-            lstStopWords = english + arabic + more_stopwords
+            lstStopWords = english + arabic
+        lstStopWords = [word.encode('utf-8') for word in lstStopWords]
         dump(lstStopWords, open('recommender/reviews/stopwords.pkl', 'wb'))
 
     def apply_Tokenization(self, data: pd.DataFrame, columns: list = [], inplace: bool = False) -> pd.DataFrame:

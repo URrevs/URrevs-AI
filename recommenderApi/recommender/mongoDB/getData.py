@@ -246,7 +246,7 @@ class MongoConnection:
             similar = Similar_Phones(mongo=self)
             df = similar.make_comparison_table(lst_phones)
             print('df is generated successfully')
-            similar.min_max_scale(df, repeat = not first)
+            if df.shape[0] != 0: similar.min_max_scale(df, repeat = not first)
             print('finish adding similar phones')
         except Exception as e:
             print('similar phones: ', e)
