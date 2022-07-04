@@ -191,3 +191,7 @@ stress_test.zip
 recommenderApi/recommender/MF_items_model.pkl
 model.pkl
 recommenderApi/recommender/mobiles1/mobiles_table_mod.csv
+recommenderApi/recommender/gamification/data15.pkl
+recommenderApi/recommender/gamification/test.py
+recommenderApi/recommender/gamification/tfidf1.pkl
+recommenderApi/recommender/mobiles1/mobiles_table_mod.csv
