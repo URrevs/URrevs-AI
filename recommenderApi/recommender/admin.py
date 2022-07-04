@@ -26,11 +26,13 @@ class MobileAdmin(admin.ModelAdmin):
 class PReviewAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'productId')
     search_fields = ('id', 'userId', 'productId')
+    list_filter = ('productId',)
 
 @admin.register(models.Prev_Likes)
 class Prev_LikesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'userId', 'reviewId')
-    search_fields = ('id', 'userId', 'reviewId')
+    list_display = ('userId', 'reviewId')
+    search_fields = ('userId', 'reviewId')
+    list_filter = ('userId', 'reviewId')
 
 @admin.register(models.CReview)
 class CReviewAdmin(admin.ModelAdmin):
@@ -40,11 +42,31 @@ class CReviewAdmin(admin.ModelAdmin):
 
 @admin.register(models.Crev_Likes)
 class Crev_LikesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'userId', 'reviewId')
-    search_fields = ('id', 'userId', 'reviewId')
+    list_display = ('userId', 'reviewId')
+    search_fields = ('userId', 'reviewId')
+    list_filter = ('userId', 'reviewId')
 
-@admin.register(models.Question)
-class QuestionAdmin(admin.ModelAdmin):
+@admin.register(models.PQuestion)
+class PQuestionAdmin(admin.ModelAdmin):
     list_display = ('id', 'userId', 'productId')
     search_fields = ('id', 'userId', 'productId')
+    list_filter = ('productId',)
+
+@admin.register(models.Pques_Upvotes)
+class Pques_UpvotesAdmin(admin.ModelAdmin):
+    list_display = ('userId', 'questionId')
+    search_fields = ('userId', 'questionId')
+    list_filter = ('userId', 'questionId')
+
+@admin.register(models.CQuestion)
+class CQuestionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'userId', 'companyId')
+    search_fields = ('id', 'userId', 'companyId')
+    list_filter = ('companyId',)
+
+@admin.register(models.Cques_Upvotes)
+class Cques_UpvotesAdmin(admin.ModelAdmin):
+    list_display = ('userId', 'questionId')
+    search_fields = ('userId', 'questionId')
+    list_filter = ('userId', 'questionId')
 

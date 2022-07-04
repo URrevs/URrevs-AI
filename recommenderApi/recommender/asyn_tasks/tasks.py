@@ -1,21 +1,40 @@
 from time import sleep
 from celery import task, shared_task
-from recommender.collobarative.seenTable import SeenTable
+from recommender.collobarative.train import train_and_update
+from recommender.mongoDB.getData import MongoConnection
+from recommender.sqliteDB.data import SQLite_Database
+from recommenderApi.imports import MongoClient, certifi, dt, ObjectId, dump, load
+from recommenderApi.settings import MONGODB_LINK, MONGODB_NAME, ROUND_NUM_OF_REVIEWS
+from recommender.sqliteDB.data import SQLite_Database
+
+# @shared_task
+# def send_emails(user = 10):
+#     print(f'Sending emails... to {user}')
+#     sleep(10)
+#     print('Emails sent')
+#     print('end async task')
+#     return
 
 @shared_task
-def send_emails():
-    print(f'Sending emails... to 1')
-    sleep(10)
-    print('Emails sent')
+def start_async(date, first):
+    print(dt.fromisoformat(date))
+    print('start async task')
+    train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
     return
 
 @shared_task
-def addToSeenTable(seenTable: SeenTable, userId, itemIds):
-    print('adding to seen table')
-    seenTable.addToSeenTable(userId, itemIds)
-    return None
+def start_async2():
+    print('start async task')
+    # with MongoClient(MONGODB_LINK, tlsCAFile=certifi.where()) as client:
+    #     db = client[MONGODB_NAME]
+    users = MongoConnection().get_users_mongo(dt(2020, 1,1))
+    for user in users:
+        print(user)
+        break
+    print('end async task')
+    return
 
 # @task
 # def send_schedualed_emails():
-#     pass
+#     print('Sending emails... to user...')

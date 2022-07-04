@@ -50,9 +50,11 @@ class SeenTable:
                     revs.append(reviews[i][1:])
                     spcs.append(spaces[i])
                     self.addToSeenTable(userid, [reviews[i]])
+            # print(revs)
             return revs, spcs
         else:
             for review in reviews: self.addToSeenTable(userid, [review])
+            # print(reviews)
             return reviews, spaces
 
     def removeExpiredDateFromSeenTable(self, amount=432000):

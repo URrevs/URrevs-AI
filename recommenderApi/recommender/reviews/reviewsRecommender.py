@@ -1,4 +1,3 @@
-from matplotlib.pyplot import axes
 from recommenderApi.imports import NearestNeighbors, os, pd, Tuple, MinMaxScaler, dump, load, nltk
 from recommenderApi.file import FileData
 from recommender.reviews.text import TextFeatureExtraction

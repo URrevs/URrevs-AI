@@ -79,6 +79,13 @@ class Prev_Likes(models.Model):
     def __str__(self) -> str:
         return f"{self.userId} likes {self.reviewId}"
 #-----------------------------------------------------------------------------------------------------
+class Prev_Most_Liked(models.Model):
+    userId      = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    reviewId    = models.ForeignKey(PReview, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.userId} most likes {self.reviewId}"
+#-----------------------------------------------------------------------------------------------------
 class CReview(models.Model):
     id              = models.CharField(max_length=100, primary_key=True)
     userId          = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -108,21 +115,60 @@ class Crev_Likes(models.Model):
     def __str__(self) -> str:
         return f"{self.userId} likes {self.reviewId}"
 #-----------------------------------------------------------------------------------------------------
-class Question(models.Model):
+class Crev_Most_Liked(models.Model):
+    userId      = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    reviewId    = models.ForeignKey(CReview, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.userId} most likes {self.reviewId}"
+#-----------------------------------------------------------------------------------------------------
+class PQuestion(models.Model):
     id                  = models.CharField(max_length=100, primary_key=True)
     userId              = models.CharField(max_length=100)
     productId           = models.CharField(max_length=100)
-
     question            = models.TextField(default='')
     hasAcceptedAnswer   = models.BooleanField(default=False)
-
     time                = models.FloatField()
 
     upvotesCounter      = models.IntegerField(default=0)
     answersCounter      = models.IntegerField(default=0)
     hatesCounter        = models.IntegerField(default=0)
 
-    isProduct           = models.BooleanField(default=True)
-
     def __str__(self) -> str:
         return f"{self.userId} add question on {self.productId}"
+#-----------------------------------------------------------------------------------------------------
+class Pques_Upvotes(models.Model):
+    userId      = models.ForeignKey(User, on_delete=models.CASCADE)
+    questionId  = models.ForeignKey(PQuestion, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('userId', 'questionId'))
+
+    def __str__(self) -> str:
+        return f"{self.userId} likes {self.questionId}"
+#-----------------------------------------------------------------------------------------------------
+class CQuestion(models.Model):
+    id                  = models.CharField(max_length=100, primary_key=True)
+    userId              = models.CharField(max_length=100)
+    companyId       = models.ForeignKey(Company, on_delete=models.CASCADE)
+    question            = models.TextField(default='')
+    hasAcceptedAnswer   = models.BooleanField(default=False)
+    time                = models.FloatField()
+
+    upvotesCounter      = models.IntegerField(default=0)
+    answersCounter      = models.IntegerField(default=0)
+    hatesCounter        = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"{self.userId} add question on {self.companyId}"
+#-----------------------------------------------------------------------------------------------------
+class Cques_Upvotes(models.Model):
+    userId      = models.ForeignKey(User, on_delete=models.CASCADE)
+    questionId  = models.ForeignKey(CQuestion, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('userId', 'questionId'))
+
+    def __str__(self) -> str:
+        return f"{self.userId} likes {self.questionId}"
+

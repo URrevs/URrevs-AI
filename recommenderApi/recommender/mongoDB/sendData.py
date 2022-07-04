@@ -3,7 +3,10 @@ from recommenderApi.settings import API_KEY_SECRET, MONGODB_UPDATE_TRAINING_TIME
 
 def send_date(time: dt):
     url = MONGODB_UPDATE_TRAINING_TIME
-    vars = load(open('recommenderApi/vars.pkl', 'rb'))
+    try: 
+        vars = load(open('recommenderApi/vars.pkl', 'rb'))
+    except:
+        vars = {}
     vars['time'] = time
     dump(vars, open('recommenderApi/vars.pkl', 'wb'))
     payload = json.dumps({"date": time.isoformat()})

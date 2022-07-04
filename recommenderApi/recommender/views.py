@@ -5,21 +5,24 @@ from django.http import JsonResponse
 from rest_framework import status
 # from django import forms
 from recommenderApi.imports import *
-from recommenderApi import settings
+from recommender.collobarative.train import update_values
+from recommenderApi.settings import *
 # from recommender.reviewsRecommender import ReviewContentRecommender
 from django.views.decorators.csrf import csrf_exempt
+from recommender.collobarative.train import train_and_update
 import json
 from .models import *
 from .fill_db import *
-from recommender.gamification.grading import Grading, FileData
+from recommender.gamification.grading import Grading
 from recommender.mongoDB.getData import *
 from recommender.mongoDB.sendData import *
-# from recommender.asyn_tasks.tasks import send_emails
+from recommender.asyn_tasks.tasks import start_async, start_async2
 from recommender.sqliteDB.data import *
 from recommender.collobarative.recommend import *
-from recommender.collobarative.train import *
-from recommender.collobarative.train import *
+# from recommender.collobarative.train import *
 from recommender.recommend import *
+from recommender.mobiles1.getPhones import Similar_Phones
+# from recommender.mobiles.getPhones import get_phones
 
 # Create your views here.
 def index(request):
@@ -38,15 +41,16 @@ def index(request):
     #         print(user)
     # except:
     #     print('error')
-
+    # print(get_phones())
     # update_values(dt(2020, 1,1))
     # train_and_update(dt(2020, 1,1), first=False)
     # Trackers(loadfile=True).showTrackers()
     # Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).showTrackers()
+    # print(Trackers(loadfile=True).getHatesReviews('62bcf0887098c747b5c99613'))
     # train(first = True)
     # SeenTable(loadfile=True).resetSeenTable()
     # print('seentable============================')
-    SeenTable(loadfile=True).showSeenTable()
+    # SeenTable(loadfile=True).showSeenTable()
     # model = MatrixFactorization(n_epochs = 30, alert = True)
     # model.load_model()
     # print(model.recommend_items('628a60526811b1d11dbba4e1'))
@@ -77,21 +81,33 @@ def index(request):
     # print(r)
     # calc_anonymous_data()
     # print('start async task')
-    # send_emails.delay()
-    return JsonResponse({'message': 'Hello, World!'})
-# def index(request):
-#     conn = MongoConnection()
-    # phones = conn.get_product_reviews_likes_mongo(dt(2020, 1,1))
-    # for phone in phones:
-    #     print(phone)
-#     return JsonResponse({'success': True, 'status': 'ok'})
+    # send_emails.delay(22)
+    # print('after async task')
+    # start_async2.delay()
+    # users = MongoConnection().get_users_mongo(dt(2020, 1,1))
+    # for user in users:
+    #     print(user)
+    #     break
+    #     sqlite.create_new_Preview_ifNotExist(review)
+    # sql = SQLite_Database()
+    # sql.update_add_Most_liked_Prev('626b28707fe7587a42e3dfeb', '627406a18cc1cefd58623f9e')
+    # like = sql.get_Most_liked_Prev('626b28707fe7587a42e3dfeb')
+    # print(like)
+    # update_values(dt(2020, 1,1))
+    # Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
+    # Similar_Phones().min_max_scale(repeat = False)
+    # Similar_Phones().min_max_scale(repeat = True)
+    # Similar_Phones().add_new_mobiles()
+    # train_and_update(dt(2022, 6, 30), first=0)
+    # Grading().calc_TF_IDF()
+    return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:
     '''
         reset all files for training
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             try:
                 Trackers().resetTrackersFile()
                 Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
@@ -125,27 +141,37 @@ def start_training(request) -> JsonResponse:
     train the recommender system
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
+            # try:
             try:
+                first = bool(reqBody.get('first') == '1')
+            except:
+                first = False
+            # Sync training run here
+            if first: date = dt(2018, 1, 1)
+            else:
                 try:
-                    first = bool(reqBody.get('first') == '1')
+                    var = load(open('recommenderApi/vars.pkl', 'rb'))
+                    date = var['date']
                 except:
-                    first = False
-                # Sync training run here
-                var = load(open('recommenderApi/vars.pkl', 'rb'))
-                train_and_update(var['time'], first=first)
-                response = {
-                    'message': 'Training started'
-                }
-                return JsonResponse(response, status=status.HTTP_200_OK)
-            except Exception as e:
-                error = {
-                    'success': False,
-                    'status': 'process failed',
-                    'error': str(e)
-                }
-                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    date =  MongoConnection().get_last_training_time()
+            
+            print('start async task')
+            print(date)
+            start_async.delay(date, first)
+            # train_and_update(date, first=first)
+            response = {
+                'message': 'Training started'
+            }
+            return JsonResponse(response, status=status.HTTP_200_OK)
+            # except Exception as e:
+            #     error = {
+            #         'success': False,
+            #         'status': 'process failed',
+            #         'error': str(e)
+            #     }
+            #     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             error = {
                 'success': False,
@@ -167,20 +193,20 @@ def get_recommendations(request, userId: str) -> JsonResponse:
         output: the reviews of the user
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
             try:
                 round = int(reqBody.get('round'))
-                user1 = get_user(userId)
-                if user1 == None:
-                    check, user = MongoConnection().check_new_user_mongo(userId)
-                    if not check:
-                        error = {
-                            'success': False,
-                            'status': "user doesn't exist"
-                        }
-                        return JsonResponse(error, status=status.HTTP_404_NOT_FOUND)
                 try:
+                    user1 = get_user(userId)
+                    if user1 == None:
+                        check, user = MongoConnection().check_new_user_mongo(userId)
+                        if not check:
+                            error = {
+                                'success': False,
+                                'status': "user doesn't exist"
+                            }
+                            return JsonResponse(error, status=status.HTTP_404_NOT_FOUND)
                     if user1 != None:
                         # print(user1, round)
                         productReviews, companyReviews, productQuestions, companyQuestions, total = recommend(
@@ -243,7 +269,7 @@ def get_anonymous_recommendations(request) -> JsonResponse:
         output: the reviews of the user
     '''
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
             try:
                 round = int(reqBody.get('round'))
@@ -257,10 +283,11 @@ def get_anonymous_recommendations(request) -> JsonResponse:
                         'total': total
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)
-                except:
+                except Exception as e:
                     error = {
                         'success': False,
-                        'status': 'process failed'
+                        'status': 'process failed',
+                        'error': str(e)
                     }
                     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except:
@@ -285,7 +312,7 @@ def get_anonymous_recommendations(request) -> JsonResponse:
 @csrf_exempt
 def get_review_grade(request):
     if request.method == 'POST':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = json.loads(request.body.decode('utf-8'))
             try:
                 reviews: list = [
@@ -328,36 +355,27 @@ def get_review_grade(request):
         }
         return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
 #-----------------------------------------------------------------------------------------------------
-similiar_phones = [
-    '6256a7575f87fa90093a4bd2', 
-    '6256a75b5f87fa90093a4bd6', 
-    '6256a76d5f87fa90093a4bdb', 
-    '6256a7715f87fa90093a4be2', 
-    '6256a7835f87fa90093a4be8', 
-    '6256a7875f87fa90093a4bec', 
-    '6256a7925f87fa90093a4bf0', 
-    '6256a7ab5f87fa90093a4bf4', 
-    '6256a7b65f87fa90093a4bf8', 
-    '6256a7ba5f87fa90093a4bfc', 
-    '6256a7d45f87fa90093a4c01',
-    '6256a7d85f87fa90093a4c06', 
-    '6256a7dc5f87fa90093a4c0b', 
-    '6256a7e05f87fa90093a4c0f', 
-    '6256a7e35f87fa90093a4c13', 
-    '6256a7f25f87fa90093a4c17', 
-    '6256a7f65f87fa90093a4c1b', 
-    '6256a7fa5f87fa90093a4c1f', 
-    '6256a7fe5f87fa90093a4c23', 
-    '6256a80c5f87fa90093a4c27'
-]
-
 def get_similiar_phones(request, phoneId):
     if request.method == 'GET':
-        if request.META.get('HTTP_X_API_KEY') == settings.API_KEY_SECRET:
-            response = {
-                'similiar_phones': similiar_phones
-            }
-            return JsonResponse(response, status=status.HTTP_200_OK)
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
+            if SQLite_Database().get_mobile(phoneId) == None:
+                error = {
+                    'success': False,
+                    'status': 'invalid phone id'
+                }
+                return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
+            try: 
+                recs = Similar_Phones().generate_20_similars(phoneId)
+                response = {
+                    'similiar_phones': recs
+                }
+                return JsonResponse(response, status=status.HTTP_200_OK)
+            except:
+                error = {
+                    'success': False,
+                    'status': 'process failed'
+                }
+                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             error = {
                 'success': False,
