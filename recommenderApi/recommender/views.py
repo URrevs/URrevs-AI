@@ -99,7 +99,7 @@ def index(request):
     # Similar_Phones().min_max_scale(repeat = True)
     # Similar_Phones().add_new_mobiles()
     # train_and_update(dt(2022, 6, 30), first=0)
-    Grading().calc_TF_IDF()
+    # Grading().calc_TF_IDF()
     return JsonResponse({'message': 'Deployed Successfully'})
 #-----------------------------------------------------------------------------------------------------
 def reset_files(request) -> JsonResponse:
