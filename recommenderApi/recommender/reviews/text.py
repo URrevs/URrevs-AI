@@ -11,6 +11,7 @@ class TextFeatureExtraction:
         '''
         self.alert = alert
         nltk.data.path.append(f'{os.getcwd()}/nltk_data')
+        nltk.data.path.append(f'{os.getcwd()}/nltk_data/tokenizers')
         # nltk.download('punkt')
         # nltk.download("stopwords")
         return
