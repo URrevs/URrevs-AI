@@ -247,7 +247,8 @@ class MongoConnection:
             df = similar.make_comparison_table(lst_phones)
             similar.min_max_scale(df, repeat = not first)
             print('finish adding similar phones')
-        except:
+        except exception as e:
+            print(e)
             print('failed to add similar phones')
         reviews = self.get_product_reviews_mongo(date)
         for review in reviews:
