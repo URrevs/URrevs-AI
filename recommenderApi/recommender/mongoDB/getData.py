@@ -68,7 +68,7 @@ class MongoConnection:
             'screenProtection': 1, 'os': 1, 'chipset': 1, 'cpu': 1, 'gpu': 1, 'intMem': 1, 'mainCam': 1,
             'selfieCam': 1, 'hasLoudspeaker': 1, 'hasStereo': 1, 'has3p5mm': 1, 'wlan': 1, 'hasNfc': 1,  
             'bluetoothVersion': 1, 'radio': 1, 'usbType': 1, 'usbVersion': 1, 'hasGyro': 1, 'hasProximity': 1,
-            'fingerprintDetails': 1, 'batteryCapacity': 1, 'hasPastCharging': 1, 'chargingPower': 1,
+            'fingerprintDetails': 1, 'batteryCapacity': 1, 'hasFastCharging': 1, 'chargingPower': 1,
             'createdAt': 1, 'updatedAt': 1
         }
         phones = phones_col.find({'createdAt': {'$gte': date}}, projection)
@@ -245,10 +245,11 @@ class MongoConnection:
         try:
             similar = Similar_Phones(mongo=self)
             df = similar.make_comparison_table(lst_phones)
+            print('df is generated successfully')
             similar.min_max_scale(df, repeat = not first)
             print('finish adding similar phones')
-        except exception as e:
-            print(e)
+        except Exception as e:
+            print('similar phones: ', e)
             print('failed to add similar phones')
         reviews = self.get_product_reviews_mongo(date)
         for review in reviews:

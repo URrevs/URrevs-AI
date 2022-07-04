@@ -192,9 +192,9 @@ def train_and_update(date: dt, first: bool = False):
         Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
         SeenTable().resetSeenTable()
     update_values(date, first)
-    # grading = Grading()
-    # grading.update_tf_idf()
-    # print('finish updating tf-idf vectorizers for gimification')
+    grading = Grading()
+    grading.update_tf_idf()
+    print('finish updating tf-idf vectorizers for gimification')
     train(first=first)
 
 def check_engagement():
