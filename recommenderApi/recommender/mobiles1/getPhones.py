@@ -307,15 +307,6 @@ class Similar_Phones:
         newDF.to_csv('recommender/mobiles1/mobiles_table_mod.csv')
         # newDF.to_csv('recommender/mobiles1/one_spec.csv')
 
-    # def add_new_mobiles(self, cols: pd.DataFrame = pd.DataFrame()):
-    #     self.load_specs()
-    #     self.load_constraints()
-    #     newDF = pd.DataFrame()
-
-    #     enc: one_hot_encoder = self.constraints['cpu']
-    #     print(enc.get_features())
-    #     pass
-
     def generate_20_similars(self, phoneId: str):
         self.table = pd.read_csv('recommender/mobiles1/mobiles_table_mod.csv', index_col='_id')
         self.table.fillna(0, inplace = True)
@@ -325,6 +316,6 @@ class Similar_Phones:
         recommendations = []
         for i in range(len(indices)):
             recommendations.extend(self.table.iloc[indices[i]].index)
-        print(recommendations[1:])
+        # print(recommendations[1:])
         return recommendations[1:]
 
