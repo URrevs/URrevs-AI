@@ -43,6 +43,9 @@ class Product(models.Model):
 #-----------------------------------------------------------------------------------------------------
 class Mobile(Product):
     price = models.FloatField(default=0.0, null=True, validators=[MinValueValidator(0.0)])
+
+    def __str__(self) -> str:
+        return self.name
 #-----------------------------------------------------------------------------------------------------
 class PReview(models.Model):
     id              = models.CharField(max_length=100, primary_key=True)

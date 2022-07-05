@@ -3,6 +3,7 @@ from recommenderApi.imports import dt, dump, load, pd, NearestNeighbors
 from recommender.mobiles1.encoder import one_hot_encoder
 from recommender.mobiles1.utils import *
 from recommenderApi.settings import *
+from recommender.sqliteDB.data import SQLite_Database
 
 class Scaler:
     def __init__(self, in_ = (0, 1), out_ = (0, 1)):
@@ -120,7 +121,7 @@ class Similar_Phones:
             cols[fun] = col.apply(lambda x: str(x).lower().replace(' ', ''))
             return cols
 
-    def min_max_scale(self, cols: pd.DataFrame, repeat: bool = False):
+    def min_max_scale(self, cols: pd.DataFrame = pd.DataFrame(), repeat: bool = False):
         self.load_specs()
         if repeat: oldDF = pd.read_csv('recommender/mobiles1/mobiles_table_mod.csv')
         # cols = pd.read_excel('recommender/mobiles1/mobiles_table.xlsx')
@@ -143,7 +144,8 @@ class Similar_Phones:
                 'hasFastCharging', 'screenType', 'screenSize', 'screen2bodyRatio', 'screenResolution',
                 'resolutionDensity', 'intMem', 'mainCam', 'selfieCam', 'hasLoudspeaker', 'hasStereo',
                 'has3p5mm', 'hasNfc', 'hasGyro', 'hasProximity', 'network', 'bluetoothVersion', 'usbType',
-                'usbVersion', 'cpu', 'gpu']:
+                'usbVersion']:
+                # 'usbVersion', 'cpu', 'gpu']:
             # --------------------------------------------------------------------------------------------
             # NUMERIC DATA
             if spec == 'price' or spec == 'batteryCapacity' or spec == 'weight' or spec == 'screenSize'\
@@ -307,15 +309,19 @@ class Similar_Phones:
         newDF.to_csv('recommender/mobiles1/mobiles_table_mod.csv')
         # newDF.to_csv('recommender/mobiles1/one_spec.csv')
 
-    def generate_20_similars(self, phoneId: str):
+    def generate_n_similars(self, phoneId: str, n: int = 20):
         self.table = pd.read_csv('recommender/mobiles1/mobiles_table_mod.csv', index_col='_id')
-        self.table.fillna(0, inplace = True)
-        nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=21, algorithm='ball_tree')
+        nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=n+1, algorithm='ball_tree')
         nbrs.fit(self.table.values)
         _, indices = nbrs.kneighbors(self.table.loc[phoneId, :].values.reshape(1, -1))
         recommendations = []
-        for i in range(len(indices)):
-            recommendations.extend(self.table.iloc[indices[i]].index)
-        # print(recommendations[1:])
-        return recommendations[1:]
+        # names = []
+        # sql = SQLite_Database()
+        recommendations.extend(self.table.iloc[indices[0][1:]].index)
+        # for id in recommendations:
+        #     mobile = sql.get_mobile(id=id)
+        #     names.append(mobile.name)
+        # print(names)
+        return recommendations
+    
 

@@ -1,3 +1,4 @@
+from bson import ObjectId
 from sklearn.utils import shuffle
 from recommender.collobarative.recommend import MatrixFactorization
 from recommender.collobarative.seenTable import SeenTable
@@ -37,6 +38,10 @@ def split(recs: list):
             reviews.append(rec[0][1:])
             spaces.append(rec[1])
     return reviews, spaces
+
+def valid_id(id: str):
+    try: ObjectId(id); return id
+    except: return id[1:]
 
 def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     # first recommend questions
@@ -110,7 +115,8 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             PR = PR - len(reviews)
 
             company_recs, spaces2 = items_recommender.recommend_items(userId, n_recommendations=CR, item_type=1)
-            companyReviews, spaces2 = seen_table.check_if_review_shown_before(userId, company_recs, spaces2)
+            reviews, spaces2 = seen_table.check_if_review_shown_before(userId, company_recs, spaces2)
+            companyReviews.extend(reviews)
             try: cspaces.extend(spaces2)
             except: cspaces = spaces2
             CR = CR - len(companyReviews)

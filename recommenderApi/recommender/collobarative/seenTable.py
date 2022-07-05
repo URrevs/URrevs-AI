@@ -53,7 +53,9 @@ class SeenTable:
             # print(revs)
             return revs, spcs
         else:
-            for review in reviews: self.addToSeenTable(userid, [review])
+            for review in reviews: 
+                self.addToSeenTable(userid, [review])
+                if len(review) == 25: review = review[1:]
             # print(reviews)
             return reviews, spaces
 

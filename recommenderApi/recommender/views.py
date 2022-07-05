@@ -94,8 +94,8 @@ def index(request):
     # like = sql.get_Most_liked_Prev('626b28707fe7587a42e3dfeb')
     # print(like)
     # update_values(dt(2020, 1,1))
-    # Similar_Phones().generate_20_similars('6256a7e35f87fa90093a4c13')
-    # Similar_Phones().min_max_scale(repeat = False)
+    # Similar_Phones().generate_n_similars('6256a7e35f87fa90093a4c13')
+    Similar_Phones().min_max_scale(repeat = False)
     # Similar_Phones().min_max_scale(repeat = True)
     # Similar_Phones().add_new_mobiles()
     # train_and_update(dt(2022, 6, 30), first=0)
@@ -365,7 +365,7 @@ def get_similiar_phones(request, phoneId):
                 }
                 return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
             try: 
-                recs = Similar_Phones().generate_20_similars(phoneId)
+                recs = Similar_Phones().generate_n_similars(phoneId)
                 response = {
                     'similiar_phones': recs
                 }
