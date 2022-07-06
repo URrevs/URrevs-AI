@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 
 class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
@@ -170,11 +170,14 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
     def recommend(
         self,
         user: Any,
-        amount: int = 10,
+        productReviewAmount: int = 8,
+        productQuestionAmount: int = 6,
+        companyReviewAmount: int = 4,
+        companyQuestionAmount: int = 2,
         items_known: list = None,
         include_user: bool = True,
         bound_ratings: bool = True,
-    ) -> pd.DataFrame:
+    ) -> Tuple[list, list,list, list,list, list,list, list]:
         """
         Returns a DataFrame of recommendations of items for a given user sorted from highest to lowest.
 
@@ -187,6 +190,14 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
         Returns:
             pd.DataFrame: Recommendations DataFrame for user with columns user_id (optional), item_id, rating sorted from highest to lowest rating 
         """
+        productReviewId=[]
+        productReviewRate=[]
+        productQuestionId=[]
+        productQuestionRate=[]
+        companyQuestionId=[]
+        companyQuestionRate=[]
+        companyreviewId=[]
+        companyreviewRate=[]
         items = list(self.item_id_map.keys())
 
         # If items_known is provided then filter by items that the user does not know
@@ -202,8 +213,44 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
 
         # Sort and keep top n items
         items_recommend.sort_values(by="rating_pred", ascending=False, inplace=True)
-        items_recommend = items_recommend.head(amount)
+        
 
+        indexs=items_recommend.index
+        for index in indexs:
+            item_id=items_recommend['item_id'][index]
+            rate=items_recommend['rating_pred'][index]
+            if item_id[0]=='0':
+                productReviewId.append(item_id)
+                productReviewRate.append(rate)
+            elif item_id[0]=='1':
+                productQuestionId.append(item_id)
+                productQuestionRate.append(rate)
+            elif item_id[0]=='2':
+                companyreviewId.append(item_id)
+                companyreviewRate.append(rate)
+            else:
+                companyQuestionId.append(item_id)
+                companyQuestionRate.append(rate)     
+                 
+        """ print(productReviewId)
+        print(productReviewRate)
+        print(productQuestionId)
+        print(productQuestionRate)
+        print(companyreviewId)
+        print(companyreviewRate)
+        print(companyQuestionId)
+        print(companyQuestionRate) """          
+        productReviewId = productReviewId[:productReviewAmount]
+        productReviewRate = productReviewRate[:productReviewAmount]
+
+        productQuestionId=productQuestionId[:productQuestionAmount]
+        productQuestionRate=productQuestionRate[:productQuestionAmount]
+
+        companyreviewId=companyreviewId[:companyReviewAmount]
+        companyreviewRate=companyreviewRate[:companyReviewAmount]
+
+        companyQuestionId=companyQuestionId[:companyQuestionAmount]
+        companyQuestionRate=companyQuestionRate[:companyQuestionAmount]
         # Bound ratings
         if bound_ratings:
             items_recommend["rating_pred"] = items_recommend["rating_pred"].clip(
@@ -212,6 +259,6 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
 
         if not include_user:
             items_recommend.drop(["user_id"], axis="columns", inplace=True)
-
-        return items_recommend
+       
+        return productReviewId,productReviewRate,productQuestionId,productQuestionRate,companyreviewId,companyreviewRate,companyQuestionId,companyQuestionRate
 

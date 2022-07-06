@@ -98,4 +98,4 @@ df = addTrackers(df, previewTrackers1, Tracker.FULL_SCREEN_REVIEW, Identifier.CO
 df = addTrackers(df, previewTrackers2, Tracker.ASK_QUESTION, Identifier.COMPANY_QUESTION)
 saveDatFarame('user2review.pkl',df) """
 #print(len(df['item_id'][0]))
-print(df)
+print(previewTrackers)
