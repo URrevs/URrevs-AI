@@ -185,7 +185,8 @@ class Similar_Phones:
                         maximum = max(col.values)
                         if minimum > old_minimum and maximum < old_maximum:
                             col = col.apply(scaler.scale)
-                            col = pd.concat([oldDF.loc[:, val], col], axis = 0).fillna(0)
+                            col = pd.concat([oldDF.loc[:, val], col], axis = 0, ignore_index=True).fillna(0)
+                            print(col, newDF)
                             newDF = pd.concat([newDF, col], axis = 1)
                         else:
                             if minimum > old_minimum: minimum = old_minimum
