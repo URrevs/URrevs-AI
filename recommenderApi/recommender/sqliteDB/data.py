@@ -117,13 +117,19 @@ class SQLite_Database:
                 rate4: int, rate5: int, rate6: int, date: dt, pros: str, cons: str):
         try:
             user = User.objects.get(id=user)
-            phone = Mobile.objects.get(id=phone)
+            phone: Mobile = Mobile.objects.get(id=phone)
             review = PReview(id=id, userId=user, productId=phone, rating=rate, time=date, pros=pros, cons=cons,
                     rating1=rate1, rating2=rate2, rating3=rate3, rating4=rate4, rating5=rate5, rating6=rate6)
             review.save()
+            try:
+                ProductOwner.objects.get_or_create(user=user, product=phone)
+                CompanyOwner.objects.get_or_create(user=user, company=phone.company)
+            except Exception as e:
+                print('create owner raws: ', e)
+                return None
             return review
         except Exception as e:
-            print(e)
+            print('create Prev: ', e)
             return None
 
     def create_new_Preview_ifNotExist(self, review):
@@ -152,6 +158,12 @@ class SQLite_Database:
                 return None
         return review
 
+    def get_Prevs(self, limit: int = -1):
+        revs = PReview.objects.all()[:limit]
+        revs = [[f'0{rev.id}', rev.likesCounter, rev.commentsCounter, rev.time, 
+            len(str(rev.pros).split())+len(str(rev.cons).split())] for rev in revs]
+        return revs
+
     def get_Previews_by_mobiles(self, mobiles = []):
         revs = []
         for mobile in mobiles:
@@ -175,7 +187,7 @@ class SQLite_Database:
 
     def update_Prev_interaction(self, review: str, interactions: list):
         try:
-            review = PReview.objects.get(id=review)
+            review: PReview = PReview.objects.get(id=review)
             review.likesCounter = max([review.likesCounter+interactions[0], 0])
             review.commentsCounter += interactions[1]
             review.hatesCounter += interactions[2]
@@ -200,7 +212,7 @@ class SQLite_Database:
             user = User.objects.get(id=user)
             review = PReview.objects.get(id=review)
             like = Prev_Likes.objects.create(userId=user, reviewId=review)
-            like.save()
+            # like.save()
             return like
         except Exception as e:
             print('ADD: ', e)
@@ -210,7 +222,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = PReview.objects.get(id=review)
-            like = Prev_Likes.objects.get(userId=user, reviewId=review)
+            like: Prev_Likes = Prev_Likes.objects.get(userId=user, reviewId=review)
             like.delete()
             return True
         except Exception as e:
@@ -232,7 +244,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = PReview.objects.get(id=review)
-            like = Prev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Prev_Most_Liked']
+            like: Prev_Most_Liked = Prev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Prev_Most_Liked']
             like.save()
             return like
         except Exception as e:
@@ -242,7 +254,7 @@ class SQLite_Database:
     def get_Most_liked_Prev(self, user: str):
         try:
             user = User.objects.get(id=user)
-            like = Prev_Most_Liked.objects.get(userId=user)
+            like: Prev_Most_Liked = Prev_Most_Liked.objects.get(userId=user)
             return like.reviewId
         except Exception as e:
             # print(e)
@@ -282,6 +294,12 @@ class SQLite_Database:
                 return None
         return review
     
+    def get_Crevs(self, limit: int = -1):
+        revs = CReview.objects.all()[:limit]
+        revs = [[f'1{rev.id}', rev.likesCounter, rev.commentsCounter, rev.time, 
+            len(str(rev.pros).split())+len(str(rev.cons).split())] for rev in revs]
+        return revs
+    
     def get_Creviews_by_companies(self, companies = []):
         revs = []
         for company in companies:
@@ -294,7 +312,7 @@ class SQLite_Database:
 
     def update_Crev_interaction(self, review: str, interactions: list):
         try:
-            review = CReview.objects.get(id=review)
+            review: CReview = CReview.objects.get(id=review)
             review.likesCounter = max([review.likesCounter+interactions[0], 0])
             review.commentsCounter += interactions[1]
             review.hatesCounter += interactions[2]
@@ -329,7 +347,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = CReview.objects.get(id=review)
-            like = Crev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Crev_Most_Liked']
+            like: Crev_Most_Liked = Crev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Crev_Most_Liked']
             like.save()
             return like
         except Exception as e:
@@ -339,7 +357,7 @@ class SQLite_Database:
     def get_Most_liked_Crev(self, user: str):
         try:
             user = User.objects.get(id=user)
-            like = Crev_Most_Liked.objects.get(userId=user)
+            like: Crev_Most_Liked = Crev_Most_Liked.objects.get(userId=user)
             return like.reviewId
         except Exception as e:
             # print(e)
@@ -349,7 +367,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = CReview.objects.get(id=review)
-            like = Crev_Likes.objects.create(userId=user, reviewId=review)
+            like: Crev_Likes = Crev_Likes.objects.create(userId=user, reviewId=review)
             like.save()
             return like
         except Exception as e:
@@ -360,7 +378,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = CReview.objects.get(id=review)
-            like = Crev_Likes.objects.get(userId=user, reviewId=review)
+            like: Crev_Likes = Crev_Likes.objects.get(userId=user, reviewId=review)
             like.delete()
             return True
         except Exception as e:
@@ -372,7 +390,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             phone = Mobile.objects.get(id=phone)
-            question = PQuestion(id=id, userId=user, productId=phone, question=question, time=date, 
+            question: PQuestion = PQuestion(id=id, userId=user, productId=phone, question=question, time=date, 
                     hasAcceptedAnswer=accepted_answer)
             question.save()
             return question
@@ -380,15 +398,16 @@ class SQLite_Database:
             print(e)
             return None
 
-    def create_new_Pquestion_ifNotExist(self, review):
+    def create_new_Pquestion_ifNotExist(self, question):
         try:
-            id, user, phone = str(review['_id']), str(review['user']), str(review['phone'])
-            date, question = dateAsNumber(review['createdAt']), str(review['content']) 
-            accepted_answer = bool(review['acceptedAns']!=None)
+            id, user, phone = str(question['_id']), str(question['user']), str(question['phone'])
+            date, content = dateAsNumber(question['createdAt']), str(question['content'])
+            try: accepted_answer = bool(question['acceptedAns']!=None)
+            except: accepted_answer = False
             user = User.objects.get(id=user)
             phone = Mobile.objects.get(id=phone)
             question = PQuestion.objects.get_or_create(id=id, userId=user, productId=phone, time=date, 
-                question=question, hasAcceptedAnswer=accepted_answer)
+                question=content, hasAcceptedAnswer=accepted_answer)
             return question
         except Exception as e:
             print(e)
@@ -403,10 +422,20 @@ class SQLite_Database:
             except PQuestion.DoesNotExist:
                 return None
         return question
+    
+    def get_Pquestions_by_products(self, products: list):
+        try:
+            ques_lst = []
+            for product in products:
+                ques_lst.extend(PQuestion.objects.filter(productId=product.product))
+            return ques_lst
+        except Exception as e:
+            print(e)
+            return None
 
     def set_Pques_accepted_answer(self, question: str, accepted_answer: bool = True):
         try:
-            question = PQuestion.objects.get(id=question)
+            question: PQuestion = PQuestion.objects.get(id=question)
             question.hasAcceptedAnswer = accepted_answer
             question.save()
             return question
@@ -415,12 +444,25 @@ class SQLite_Database:
             return None
 
     def get_answered_Pquestions(self, limit: int = -1, order: bool = False, answer: bool = True):
-        if order: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
-        else: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer)[:limit]
+        if order: questions = PQuestion.objects.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
+        else: questions = PQuestion.objects.filter(hasAcceptedAnswer=answer)[:limit]
         ques_lst = []
         for question in questions:
-            ques_lst.append(question.id)
+            ques_lst.append([f'2{question.id}', question.upvotesCounter, question.answersCounter, question.time, 0])
         return ques_lst
+        # return questions
+
+    # This function is only used for tracker (about my page visits)
+    def get_owned_mobiles_questions(self, userId):
+        user = User.objects.get(id=userId)
+        products = ProductOwner.objects.filter(user=user)
+        questions = []
+        for question in self.get_Pquestions_by_products(products=products):
+            questions.append({
+                'id': userId, 
+                'question': f'2{question.id}'
+                })
+        return questions
 
     def get_all_mobiles_have_questions(self):
         mobiles = PQuestion.objects.values_list('productId', flat=True).distinct()
@@ -435,7 +477,7 @@ class SQLite_Database:
 
     def update_Pques_interaction(self, question: str, interactions: list):
         try:
-            question = PQuestion.objects.get(id=question)
+            question: PQuestion = PQuestion.objects.get(id=question)
             question.upvotesCounter = max([question.upvotesCounter+interactions[0], 0])
             question.answersCounter += interactions[1]
             question.hatesCounter += interactions[2]
@@ -459,8 +501,8 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             question = PQuestion.objects.get(id=question)
-            upvote = Pques_Upvotes.objects.get(userId=user, questionId=question)
-            upvote.save()
+            upvote = Pques_Upvotes.objects.create(userId=user, questionId=question)
+            # upvote.save()
             return upvote
         except Exception as e:
             print('ADD: ', e)
@@ -470,7 +512,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             question = PQuestion.objects.get(id=question)
-            upvote = Pques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote: Pques_Upvotes = Pques_Upvotes.objects.get(userId=user, questionId=question)
             upvote.delete()
             return True
         except Exception as e:
@@ -482,7 +524,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             company = Company.objects.get(id=company)
-            question = CQuestion(id=id, userId=user, companyId=company, question=question, time=date, 
+            question: CQuestion = CQuestion(id=id, userId=user, companyId=company, question=question, time=date, 
                     hasAcceptedAnswer=accepted_answer)
             question.save()
             return question
@@ -490,15 +532,16 @@ class SQLite_Database:
             print(e)
             return None
 
-    def create_new_Cquestion_ifNotExist(self, review):
+    def create_new_Cquestion_ifNotExist(self, question):
         try:
-            id, user, company = str(review['_id']), str(review['user']), str(review['company'])
-            date, question = dateAsNumber(review['createdAt']), str(review['content']) 
-            accepted_answer = bool(review['acceptedAns']!=None)
+            id, user, company = str(question['_id']), str(question['user']), str(question['company'])
+            date, content = dateAsNumber(question['createdAt']), str(question['content']) 
+            try: accepted_answer = bool(question['acceptedAns']!=None)
+            except: accepted_answer = False
             user = User.objects.get(id=user)
             company = Company.objects.get(id=company)
             question = CQuestion.objects.get_or_create(id=id, userId=user, companyId=company, time=date, 
-                question=question, hasAcceptedAnswer=accepted_answer)
+                question=content, hasAcceptedAnswer=accepted_answer)
             return question
         except Exception as e:
             print(e)
@@ -516,7 +559,7 @@ class SQLite_Database:
 
     def set_Cques_accepted_answer(self, question: str, accepted_answer: bool = True):
         try:
-            question = CQuestion.objects.get(id=question)
+            question: CQuestion = CQuestion.objects.get(id=question)
             question.hasAcceptedAnswer = accepted_answer
             question.save()
             return question
@@ -525,16 +568,17 @@ class SQLite_Database:
             return None
 
     def get_answered_Cquestions(self, limit: int = -1, order: bool = False, answer: bool = True):
-        if order: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
-        else: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer)[:limit]
+        if order: questions = CQuestion.objects.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
+        else: questions = CQuestion.objects.filter(hasAcceptedAnswer=answer)[:limit]
         ques_lst = []
         for question in questions:
-            ques_lst.append(question.id)
+            ques_lst.append([f'3{question.id}', question.upvotesCounter, question.answersCounter, question.time, 0])
         return ques_lst
+        # return questions
 
     def update_Cques_interaction(self, question: str, interactions: list):
         try:
-            question = CQuestion.objects.get(id=question)
+            question: CQuestion = CQuestion.objects.get(id=question)
             question.upvotesCounter = max([question.upvotesCounter+interactions[0], 0])
             question.answersCounter += interactions[1]
             question.hatesCounter += interactions[2]
@@ -544,7 +588,7 @@ class SQLite_Database:
             print(e)
             return None
 
-    def check_Pques_upvote(self, user: str, question: str):
+    def check_Cques_upvote(self, user: str, question: str):
         try:
             user = User.objects.get(id=user)
             question = CQuestion.objects.get(id=question)
@@ -554,22 +598,22 @@ class SQLite_Database:
             # print('CHECK: ', e)
             return False
 
-    def add_Pques_upvote(self, user: str, question: str):
+    def add_Cques_upvote(self, user: str, question: str):
         try:
             user = User.objects.get(id=user)
             question = CQuestion.objects.get(id=question)
-            upvote = Cques_Upvotes.objects.get(userId=user, questionId=question)
-            upvote.save()
+            upvote = Cques_Upvotes.objects.create(userId=user, questionId=question)
+            # upvote.save()
             return upvote
         except Exception as e:
             print('ADD: ', e)
             return None
 
-    def remove_Pques_upvote(self, user: str, question: str):
+    def remove_Cques_upvote(self, user: str, question: str):
         try:
             user = User.objects.get(id=user)
             question = CQuestion.objects.get(id=question)
-            upvote = Cques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote: Cques_Upvotes = Cques_Upvotes.objects.get(userId=user, questionId=question)
             upvote.delete()
             return True
         except Exception as e:

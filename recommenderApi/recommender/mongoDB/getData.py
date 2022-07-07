@@ -318,9 +318,13 @@ class MongoConnection:
 
     def get_product_questions_aboutmyphones_visits_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
+        sql = SQLite_Database()
         ques_visits_col = self.db['questionsaboutmyphonesvisits']
         visits = ques_visits_col.find({'updatedAt': {'$gte': date}}, {'_id': 1})
-        return visits
+        visits_lst: list = []
+        for visit in visits:
+            visits_lst.extend(sql.get_owned_mobiles_questions(str(visit['_id'])))
+        return visits_lst
 
     def get_product_questions_hates_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
@@ -393,10 +397,10 @@ class MongoConnection:
         print('get all pques accepted answer')
         questions = self.get_product_questions_added_acceptedanswer_mongo(date)
         for question in questions:
-            sqlite.set_Pques_accepted_answer(question)
+            sqlite.set_Pques_accepted_answer(question['question'])
         questions = self.get_product_questions_removed_acceptedanswer_mongo(date)
         for question in questions:
-            sqlite.set_Pques_accepted_answer(question, accepted_answer=False)
+            sqlite.set_Pques_accepted_answer(question['question'], accepted_answer=False)
         print('finish updating all pques accepted answer')
         print('get all cques mongo')
         questions = self.get_company_questions_mongo(date)
@@ -406,10 +410,10 @@ class MongoConnection:
         print('get all cques accepted answer')
         questions = self.get_company_questions_added_acceptedanswer_mongo(date)
         for question in questions:
-            sqlite.set_Cques_accepted_answer(question)
+            sqlite.set_Cques_accepted_answer(question['question'])
         questions = self.get_company_questions_removed_acceptedanswer_mongo(date)
         for question in questions:
-            sqlite.set_Cques_accepted_answer(question, accepted_answer=False)
+            sqlite.set_Cques_accepted_answer(question['question'], accepted_answer=False)
         print('finish updating all pques accepted answer')
         print('finish adding all users, companies, mobiles, reviews and questions')
         return product_questions
@@ -440,7 +444,7 @@ class MongoConnection:
                     'DOWNVOTE': self.get_product_questions_downvotes_mongo(date),
                     'ANSWER': self.get_product_questions_answers_mongo(date),
                     'FULL_SCREEN': self.get_product_questions_fullscreens_mongo(date),
-                    'ABOUT_MYPHONE_VISIT': self.get_product_questions_aboutmyphones_visits_mongo(date),
+                    'ABOUT_MY_PRODUCTS_PAGE': self.get_product_questions_aboutmyphones_visits_mongo(date),
                     'DONT_LIKE': self.get_product_questions_hates_mongo(date)
                 },
                 'company': {

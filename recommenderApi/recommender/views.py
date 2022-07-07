@@ -93,9 +93,20 @@ def index(request):
     # sql.update_add_Most_liked_Prev('626b28707fe7587a42e3dfeb', '627406a18cc1cefd58623f9e')
     # like = sql.get_Most_liked_Prev('626b28707fe7587a42e3dfeb')
     # print(like)
-    # update_values(dt(2020, 1,1))
+    # update_values(dt(2022, 7, 1))
+    # MongoConnection().get_product_questions_mongo(dt(2022, 7, 1))
+    # SQLite_Database().add_Prev_like('62c22279d7965c45d2c698eb', '62c264e5ad43f157e4ef19b6')
+    # SQLite_Database().create_Preview(id='fferre', user='62c22279d7965c45d2c698eb', phone='6256a76d5f87fa90093a4bdb',
+    #         rate=1, rate1=1, rate2=1, rate3=1, rate4=1, rate5=1, rate6=1, date=12332435, pros='', cons='')
+    # visits = [{'id': '62c22279d7965c45d2c698eb'}, {'id': '62c22279d7965c45d2c698eb'}]
+    # visits_lst: list = []
+    # sql = SQLite_Database()
+    # for visit in visits:
+    #     visits_lst.extend(sql.get_owned_mobiles_questions(str(visit['id'])))
+    # print(visits_lst)
+    # SQLite_Database().get_owned_mobiles_questions('62c22279d7965c45d2c698eb')
     # Similar_Phones().generate_n_similars('6256a7e35f87fa90093a4c13')
-    Similar_Phones().min_max_scale(repeat = False)
+    # Similar_Phones().min_max_scale(repeat = False)
     # Similar_Phones().min_max_scale(repeat = True)
     # Similar_Phones().add_new_mobiles()
     # train_and_update(dt(2022, 6, 30), first=0)
@@ -274,12 +285,12 @@ def get_anonymous_recommendations(request) -> JsonResponse:
             try:
                 round = int(reqBody.get('round'))
                 try:
-                    product, company, total = anonymous_recommend(round)
+                    prevs, crevs, pques, cques, total = anonymous_recommend(round)
                     response = {
-                        'phoneRevs': product,
-                        'companyRevs': company,
-                        'phoneQuestions': [],
-                        'companyQuestions': [],
+                        'phoneRevs': prevs,
+                        'companyRevs': crevs,
+                        'phoneQuestions': pques,
+                        'companyQuestions': cques,
                         'total': total
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)

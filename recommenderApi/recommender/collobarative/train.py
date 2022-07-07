@@ -3,7 +3,7 @@ from recommender.collobarative.seenTable import SeenTable
 from recommender.mongoDB.getData import MongoConnection
 from recommender.mongoDB.sendData import send_date
 from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.imports import np, pd, dt, dump, load, Review_Tracker, Mobile_Tracker
+from recommenderApi.imports import np, pd, dt, dump, load, Review_Tracker, Mobile_Tracker, Question_Tracker
 from recommender.collobarative.recommend import MatrixFactorization
 from recommender.gamification.grading import Grading
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, REMOVE_FROM_SEEN_TABLE_AFTER_DAYS, EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
@@ -114,20 +114,24 @@ def update_ratios(diffs: list, old: list) -> list:
     return new
 
 def update_counts(sqlite: SQLite_Database, itemType, itemId: str, val: list):
-    if itemType == '1': # company
-        sqlite.update_Crev_interaction(itemId, val)
-    else: # product
+    if itemType == '0': # product reviews
         sqlite.update_Prev_interaction(itemId, val)
+    elif itemType == '1': # company reviews
+        sqlite.update_Crev_interaction(itemId, val)
+    elif itemType == '2': # product questions
+        sqlite.update_Pques_interaction(itemId, val)
+    elif itemType == '3': # company questions
+        sqlite.update_Cques_interaction(itemId, val)
 
 def get_all_mobiles_have_reviews():
     sqlite = SQLite_Database()
     return sqlite.get_all_mobiles_have_reviews()
 
-def update_values(date: dt, first: bool):
+def update_values(date: dt, first: bool = False):
     try:
         print('----------------------------- Start Updating Values ------------------------------------')
         mongo = MongoConnection()
-        mongo.update_all_fixed_data_mongo(date=date, first=first)
+        product_questions = mongo.update_all_fixed_data_mongo(date=date, first=first)
         print('updated all fixed data')
         review = ReviewContentRecommender()
         review.preprocessing()
@@ -138,9 +142,17 @@ def update_values(date: dt, first: bool):
         print('got all items trackers')
         items_trackers_file = Trackers(loadfile=True)
         # items_trackers_file.resetTrackersFile()
-        for item_type in items_trackers.keys():
-            for tracker_type in items_trackers[item_type].keys():
-                items_trackers_file.addItemsTrackers(items_trackers[item_type][tracker_type], Review_Tracker[tracker_type], item_type=='company')
+        for item in items_trackers.keys():
+            # review or question
+            for item_type in items_trackers[item]:
+                # product or company
+                for tracker_type in items_trackers[item][item_type].keys():
+                    if item == 'reviews':
+                        items_trackers_file.addReviewsTrackers(items_trackers[item][item_type][tracker_type],\
+                                Review_Tracker[tracker_type], item_type=='company')
+                    elif item == 'questions':
+                        items_trackers_file.addQuestionsTrackers(items_trackers[item][item_type][tracker_type],\
+                                Question_Tracker[tracker_type], int(item_type=='company')+2)
         print('added items trackers')
         items_trackers_file.down_old_items_grade()
         print('downgraded old items')
@@ -203,34 +215,61 @@ def train_and_update(date: dt, first: bool = False):
 
 def check_engagement():
     df: pd.DataFrame = load(open('recommender/collobarative/itemsTrackers.pkl', 'rb'))['item_id']
+    print(df.value_counts().index.values)
     return len(df.value_counts().values) >= 10, df.value_counts().index.values
 
 def calc_anonymous_data():
-    check, df = check_engagement()
-    reviews = []
-    count = 0
-    if check:
-        count = (min([len(df), 200]) // ROUND_NUM_OF_REVIEWS) * ROUND_NUM_OF_REVIEWS
-        sqlite = SQLite_Database()
-        for id in df:
-            if id[0] == '0':
-                prev = sqlite.get_Preview(id = id[1:])
-                # After adding all prevs to db remove this condition
-                if prev != None:
-                    reviews.append([id, prev.likesCounter, prev.commentsCounter])
-            else:
-                crev = sqlite.get_Creview(id=id[1:])
-                # After adding all crevs to db remove this condition
-                if crev != None:
-                    reviews.append([id, crev.likesCounter, crev.commentsCounter])
-        reviews.sort(key=lambda x: (-x[1], -x[2]))
-        reviews = [reviews[i][0] for i in range(count)]
-    reviews1 = []
-    prevs = PReview.objects.all().order_by('-time')[:100 - count/2]
-    crevs = CReview.objects.all().order_by('-time')[:100 - count/2]
-    reviews1 = ([[f'0{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in prevs]\
-        + [[f'1{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in crevs])
-    reviews1.sort(key=lambda x: (-x[2], -x[1]))
-    reviews = reviews + [review[0] for review in reviews1]
-    dump(reviews, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
-    return reviews
+    sql = SQLite_Database()
+    items = []
+    cques = sql.get_answered_Cquestions(answer=True, limit=50)
+    pques = sql.get_answered_Pquestions(answer=True, limit=100-len(cques))
+    rest = 100 - len(pques) - len(cques)
+    if rest % 2 == 0: prevs = sql.get_Prevs(limit=50+rest//2)
+    else: prevs = sql.get_Prevs(limit=51+rest//2)
+    crevs = sql.get_Crevs(limit=50+rest//2)
+    items.extend(cques); items.extend(pques); items.extend(crevs); items.extend(prevs)
+    items.sort(key=lambda x: (-x[1], -x[2], -x[3], -x[4]))
+    counter = 0; iter = 0
+    pques = []; cques = []; prevs = []; crevs = []; total = []; final = []
+    for item in items:
+        total.append(item[0][1:])
+        if item[0][0] == '0': prevs.append(item[0][1:])
+        if item[0][0] == '1': crevs.append(item[0][1:])
+        if item[0][0] == '2': pques.append(item[0][1:])
+        if item[0][0] == '3': cques.append(item[0][1:])
+        counter += 1
+        if counter == ROUND_NUM_OF_REVIEWS: 
+            counter = 0
+            final.append([prevs, crevs, pques, cques, total])
+            pques = []; cques = []; prevs = []; crevs = []; total = []
+            iter += 1
+    dump(final, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
+    return final
+    # check, df = check_engagement()
+    # reviews = []
+    # count = 0
+    # if check:
+    #     count = (min([len(df), 200]) // ROUND_NUM_OF_REVIEWS) * ROUND_NUM_OF_REVIEWS
+    #     sqlite = SQLite_Database()
+    #     for id in df:
+    #         if id[0] == '0':
+    #             prev = sqlite.get_Preview(id = id[1:])
+    #             # After adding all prevs to db remove this condition
+    #             if prev != None:
+    #                 reviews.append([id, prev.likesCounter, prev.commentsCounter])
+    #         else:
+    #             crev = sqlite.get_Creview(id=id[1:])
+    #             # After adding all crevs to db remove this condition
+    #             if crev != None:
+    #                 reviews.append([id, crev.likesCounter, crev.commentsCounter])
+    #     reviews.sort(key=lambda x: (-x[1], -x[2]))
+    #     reviews = [reviews[i][0] for i in range(count)]
+    # reviews1 = []
+    # prevs = PReview.objects.all().order_by('-time')[:100 - count/2]
+    # crevs = CReview.objects.all().order_by('-time')[:100 - count/2]
+    # reviews1 = ([[f'0{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in prevs]\
+    #     + [[f'1{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in crevs])
+    # reviews1.sort(key=lambda x: (-x[2], -x[1]))
+    # reviews = reviews + [review[0] for review in reviews1]
+    # dump(reviews, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
+    # return reviews

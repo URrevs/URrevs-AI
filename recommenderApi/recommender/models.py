@@ -1,4 +1,3 @@
-from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS
 from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
@@ -30,6 +29,16 @@ class Company(models.Model):
     def __str__(self) -> str:
         return f"{self.name}"
 #-----------------------------------------------------------------------------------------------------
+class CompanyOwner(models.Model):
+    user    = models.ForeignKey(User, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user', 'company'))
+
+    def __str__(self) -> str:
+        return f'{self.user} owns mobile/s from {self.company}'
+#-----------------------------------------------------------------------------------------------------
 class Product(models.Model):
     id          = models.CharField(max_length=100, primary_key=True)
     name        = models.CharField(max_length=100, default='')
@@ -41,6 +50,16 @@ class Product(models.Model):
     def __str__(self) -> str:
         return f"{self.id} {self.name}"
 #-----------------------------------------------------------------------------------------------------
+class ProductOwner(models.Model):
+    user    = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('user', 'product'))
+
+    def __str__(self) -> str:
+        return f'{self.user} owns {self.product}'
+#-----------------------------------------------------------------------------------------------------
 class Mobile(Product):
     price = models.FloatField(default=0.0, null=True, validators=[MinValueValidator(0.0)])
 
@@ -50,7 +69,7 @@ class Mobile(Product):
 class PReview(models.Model):
     id              = models.CharField(max_length=100, primary_key=True)
     userId          = models.ForeignKey(User, on_delete=models.CASCADE)
-    productId       = models.ForeignKey(Mobile, on_delete=models.CASCADE)
+    productId       = models.ForeignKey(Product, on_delete=models.CASCADE)
 
     pros            = models.TextField(default='')
     cons            = models.TextField(default='')
@@ -70,7 +89,7 @@ class PReview(models.Model):
     hatesCounter    = models.IntegerField(default=0)
 
     class Meta:
-        ordering = ('-likesCounter', '-time',)
+        ordering = ('-likesCounter', '-commentsCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} review {self.productId}"
@@ -109,7 +128,7 @@ class CReview(models.Model):
     hatesCounter    = models.IntegerField(default=0)
     
     class Meta:
-        ordering = ('-likesCounter', '-time',)
+        ordering = ('-likesCounter', '-commentsCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} review {self.companyId}"
@@ -133,8 +152,8 @@ class Crev_Most_Liked(models.Model):
 #-----------------------------------------------------------------------------------------------------
 class PQuestion(models.Model):
     id                  = models.CharField(max_length=100, primary_key=True)
-    userId              = models.CharField(max_length=100)
-    productId           = models.CharField(max_length=100)
+    userId              = models.ForeignKey(User, on_delete=models.CASCADE)
+    productId           = models.ForeignKey(Product, on_delete=models.CASCADE)
     question            = models.TextField(default='')
     hasAcceptedAnswer   = models.BooleanField(default=False)
     time                = models.FloatField()
@@ -145,7 +164,7 @@ class PQuestion(models.Model):
     hatesCounter        = models.IntegerField(default=0)
 
     class Meta:
-        ordering = ('-upvotesCounter', '-time',)
+        ordering = ('-upvotesCounter', '-answersCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} add question on {self.productId}"
@@ -162,8 +181,8 @@ class Pques_Upvotes(models.Model):
 #-----------------------------------------------------------------------------------------------------
 class CQuestion(models.Model):
     id                  = models.CharField(max_length=100, primary_key=True)
-    userId              = models.CharField(max_length=100)
-    companyId       = models.ForeignKey(Company, on_delete=models.CASCADE)
+    userId              = models.ForeignKey(User, on_delete=models.CASCADE)
+    companyId           = models.ForeignKey(Company, on_delete=models.CASCADE)
     question            = models.TextField(default='')
     hasAcceptedAnswer   = models.BooleanField(default=False)
     time                = models.FloatField()
@@ -174,7 +193,7 @@ class CQuestion(models.Model):
     hatesCounter        = models.IntegerField(default=0)
 
     class Meta:
-        ordering = ('-upvotesCounter', '-time',)
+        ordering = ('-upvotesCounter', '-answersCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} add question on {self.companyId}"

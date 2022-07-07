@@ -5,7 +5,7 @@ from recommender.collobarative.seenTable import SeenTable
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
 from recommender.collobarative.reviewTracker import Trackers
 from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.settings import ROUND_NUM_OF_REVIEWS
+from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, DAILY_ITEMS_QOUTA
 from recommenderApi.imports import load, os, dump
 from recommender.collobarative.train import calc_anonymous_data
 
@@ -189,15 +189,10 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     return productReviews, companyReviews, productQuestions, companyQuestions, total
 
 def anonymous_recommend(round: int):
-    random = (round > (200/ROUND_NUM_OF_REVIEWS))
-    round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
-    start = int((round - 1) * ROUND_NUM_OF_REVIEWS)
-    end = int(round * ROUND_NUM_OF_REVIEWS)
+    random = (round > (DAILY_ITEMS_QOUTA/ROUND_NUM_OF_REVIEWS))
+    round = (round-1) % (DAILY_ITEMS_QOUTA//ROUND_NUM_OF_REVIEWS) + 1
     if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'):
         calc_anonymous_data()
-    reviews = load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[start: end]
-    product = [review[1:] for review in reviews if review[0] == '0']
-    company = [review[1:] for review in reviews if review[0] == '1']
-    if random: reviews = shuffle(reviews)
-    total = [review[1:] for review in reviews]
-    return product, company, total
+    [prevs, crevs, pques, cques, total] = load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+    if random: total = shuffle(total)
+    return prevs, crevs, pques, cques, total

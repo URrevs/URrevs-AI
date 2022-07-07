@@ -12,10 +12,20 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     search_fields = ('id', 'name')
 
+@admin.register(models.CompanyOwner)
+class CompanyOwnerAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company')
+    search_fields = ('user', 'company')
+
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'company')
     search_fields = ('id', 'name', 'company')
+
+@admin.register(models.ProductOwner)
+class ProductOwnerAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product')
+    search_fields = ('user', 'product')
 
 @admin.register(models.Mobile)
 class MobileAdmin(admin.ModelAdmin):
