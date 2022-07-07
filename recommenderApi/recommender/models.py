@@ -69,6 +69,9 @@ class PReview(models.Model):
     commentsCounter = models.IntegerField(default=0)
     hatesCounter    = models.IntegerField(default=0)
 
+    class Meta:
+        ordering = ('-likesCounter', '-time',)
+
     def __str__(self) -> str:
         return f"{self.userId} review {self.productId}"
 #-----------------------------------------------------------------------------------------------------
@@ -105,6 +108,9 @@ class CReview(models.Model):
     commentsCounter = models.IntegerField(default=0)
     hatesCounter    = models.IntegerField(default=0)
     
+    class Meta:
+        ordering = ('-likesCounter', '-time',)
+
     def __str__(self) -> str:
         return f"{self.userId} review {self.companyId}"
 #-----------------------------------------------------------------------------------------------------
@@ -132,10 +138,14 @@ class PQuestion(models.Model):
     question            = models.TextField(default='')
     hasAcceptedAnswer   = models.BooleanField(default=False)
     time                = models.FloatField()
+    product_owner       = models.BooleanField(default=False)
 
     upvotesCounter      = models.IntegerField(default=0)
     answersCounter      = models.IntegerField(default=0)
     hatesCounter        = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ('-upvotesCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} add question on {self.productId}"
@@ -157,10 +167,14 @@ class CQuestion(models.Model):
     question            = models.TextField(default='')
     hasAcceptedAnswer   = models.BooleanField(default=False)
     time                = models.FloatField()
+    company_owner       = models.BooleanField(default=False)
 
     upvotesCounter      = models.IntegerField(default=0)
     answersCounter      = models.IntegerField(default=0)
     hatesCounter        = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ('-upvotesCounter', '-time',)
 
     def __str__(self) -> str:
         return f"{self.userId} add question on {self.companyId}"

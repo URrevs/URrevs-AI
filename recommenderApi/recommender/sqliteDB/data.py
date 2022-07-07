@@ -366,3 +366,212 @@ class SQLite_Database:
         except Exception as e:
             print('REMOVE: ', e)
             return False
+
+    def create_Pquestion(self, id: str, user: str, phone: str, date: float, question: str, 
+            accepted_answer: bool):
+        try:
+            user = User.objects.get(id=user)
+            phone = Mobile.objects.get(id=phone)
+            question = PQuestion(id=id, userId=user, productId=phone, question=question, time=date, 
+                    hasAcceptedAnswer=accepted_answer)
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def create_new_Pquestion_ifNotExist(self, review):
+        try:
+            id, user, phone = str(review['_id']), str(review['user']), str(review['phone'])
+            date, question = dateAsNumber(review['createdAt']), str(review['content']) 
+            accepted_answer = bool(review['acceptedAns']!=None)
+            user = User.objects.get(id=user)
+            phone = Mobile.objects.get(id=phone)
+            question = PQuestion.objects.get_or_create(id=id, userId=user, productId=phone, time=date, 
+                question=question, hasAcceptedAnswer=accepted_answer)
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_Pquestion(self, id: str = ''):
+        if id == '':
+            question = PQuestion.objects.all()
+        else:
+            try:
+                question = PQuestion.objects.get(pk= id)
+            except PQuestion.DoesNotExist:
+                return None
+        return question
+
+    def set_Pques_accepted_answer(self, question: str, accepted_answer: bool = True):
+        try:
+            question = PQuestion.objects.get(id=question)
+            question.hasAcceptedAnswer = accepted_answer
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_answered_Pquestions(self, limit: int = -1, order: bool = False, answer: bool = True):
+        if order: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
+        else: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer)[:limit]
+        ques_lst = []
+        for question in questions:
+            ques_lst.append(question.id)
+        return ques_lst
+
+    def get_all_mobiles_have_questions(self):
+        mobiles = PQuestion.objects.values_list('productId', flat=True).distinct()
+        mobiles_lst = []
+        for mobile in mobiles:
+            mobiles_lst.append(mobile)
+        try: vars = load(open('recommenderApi/vars.pkl', 'rb'))
+        except: vars = {}
+        vars['mobiles_questions'] = mobiles_lst
+        dump(vars, open('recommenderApi/vars.pkl', 'wb'))
+        return mobiles_lst
+
+    def update_Pques_interaction(self, question: str, interactions: list):
+        try:
+            question = PQuestion.objects.get(id=question)
+            question.upvotesCounter = max([question.upvotesCounter+interactions[0], 0])
+            question.answersCounter += interactions[1]
+            question.hatesCounter += interactions[2]
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def check_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = PQuestion.objects.get(id=question)
+            Pques_Upvotes.objects.get(userId=user, questionId=question)
+            return True
+        except Exception as e:
+            # print('CHECK: ', e)
+            return False
+
+    def add_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = PQuestion.objects.get(id=question)
+            upvote = Pques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote.save()
+            return upvote
+        except Exception as e:
+            print('ADD: ', e)
+            return None
+
+    def remove_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = PQuestion.objects.get(id=question)
+            upvote = Pques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote.delete()
+            return True
+        except Exception as e:
+            print('REMOVE: ', e)
+            return False
+
+    def create_Cquestion(self, id: str, user: str, company: str, date: float, question: str, 
+            accepted_answer: bool):
+        try:
+            user = User.objects.get(id=user)
+            company = Company.objects.get(id=company)
+            question = CQuestion(id=id, userId=user, companyId=company, question=question, time=date, 
+                    hasAcceptedAnswer=accepted_answer)
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def create_new_Cquestion_ifNotExist(self, review):
+        try:
+            id, user, company = str(review['_id']), str(review['user']), str(review['company'])
+            date, question = dateAsNumber(review['createdAt']), str(review['content']) 
+            accepted_answer = bool(review['acceptedAns']!=None)
+            user = User.objects.get(id=user)
+            company = Company.objects.get(id=company)
+            question = CQuestion.objects.get_or_create(id=id, userId=user, companyId=company, time=date, 
+                question=question, hasAcceptedAnswer=accepted_answer)
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_Cquestion(self, id: str = ''):
+        if id == '':
+            question = CQuestion.objects.all()
+        else:
+            try:
+                question = CQuestion.objects.get(pk= id)
+            except PQuestion.DoesNotExist:
+                return None
+        return question
+
+    def set_Cques_accepted_answer(self, question: str, accepted_answer: bool = True):
+        try:
+            question = CQuestion.objects.get(id=question)
+            question.hasAcceptedAnswer = accepted_answer
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_answered_Cquestions(self, limit: int = -1, order: bool = False, answer: bool = True):
+        if order: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer).order_by(['-upvotesCounter', '-time'])[:limit]
+        else: questions = PReview.PQuestion.filter(hasAcceptedAnswer=answer)[:limit]
+        ques_lst = []
+        for question in questions:
+            ques_lst.append(question.id)
+        return ques_lst
+
+    def update_Cques_interaction(self, question: str, interactions: list):
+        try:
+            question = CQuestion.objects.get(id=question)
+            question.upvotesCounter = max([question.upvotesCounter+interactions[0], 0])
+            question.answersCounter += interactions[1]
+            question.hatesCounter += interactions[2]
+            question.save()
+            return question
+        except Exception as e:
+            print(e)
+            return None
+
+    def check_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = CQuestion.objects.get(id=question)
+            Cques_Upvotes.objects.get(userId=user, questionId=question)
+            return True
+        except Exception as e:
+            # print('CHECK: ', e)
+            return False
+
+    def add_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = CQuestion.objects.get(id=question)
+            upvote = Cques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote.save()
+            return upvote
+        except Exception as e:
+            print('ADD: ', e)
+            return None
+
+    def remove_Pques_upvote(self, user: str, question: str):
+        try:
+            user = User.objects.get(id=user)
+            question = CQuestion.objects.get(id=question)
+            upvote = Cques_Upvotes.objects.get(userId=user, questionId=question)
+            upvote.delete()
+            return True
+        except Exception as e:
+            print('REMOVE: ', e)
+            return False

@@ -34,6 +34,7 @@ MONGODB_NAME = config('MONGODB_NAME', default='')
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'{config("API_HOST", default="")}']
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
+DAILY_ITEMS_QOUTA = config('DAILY_ITEMS_QOUTA', default=200, cast=int)
 ROUND_NUM_OF_REVIEWS = config('ROUND_NUM_OF_ITEMS', default=20, cast=int)
 REMOVE_FROM_SEEN_TABLE_AFTER_DAYS = config('REMOVE_FROM_SEEN_TABLE_AFTER_DAYS', default=5, cast=int)
 DAILY_DECREASE_FOR_OLD_TRACKERS = config('DAILY_DECREASE_FOR_OLD_TRACKERS', default=0.1, cast=float)
@@ -59,7 +60,7 @@ QUESTION_FULL_SCREEN = config('QUESTION_FULL_SCREEN', default=0.25, cast=float)
 QUESTION_UPVOTE = config('QUESTION_UPVOTE', default=0.25, cast=float)
 QUESTION_DOWNVOTE = config('QUESTION_DOWNVOTE', default=-0.25, cast=float)
 QUESTION_ANSWER = config('QUESTION_ANSWER', default=0.33, cast=float)
-QUESTION_MY_PRODUCT_PAGE = config('QUESTION_MY_PRODUCT_PAGE', default=0.17, cast=float)
+QUESTION_MY_PRODUCTS_PAGE = config('QUESTION_MY_PRODUCTS_PAGE', default=0.17, cast=float)
 QUESTION_DONT_LIKE = config('QUESTION_DONT_LIKE', default=-1, cast=float)
 
 # Mobile Trackers
@@ -67,11 +68,7 @@ MOBILE_PROFILE = config('MOBILE_PROFILE', default=0.3, cast=float)
 MOBILE_COMPARE = config('MOBILE_COMPARE', default=0.2, cast=float)
 MOBILE_QUESTION = config('MOBILE_QUESTION', default=0.5, cast=float)
 
-# HOUR = config('HOUR', default=19, cast=int)
-# MINUTE = config('MINUTE', default=21, cast=int)
-
-
-# Mobile Specs (76%)
+# Mobile Specs (82%)
 SPECS_PRICE = config('SPECS_PRICE', default=15, cast=int)
 SPECS_RELEASE_DATE = config('SPECS_RELEASE_DATE', default=9, cast=int)
 SPECS_COMPANY = config('SPECS_COMPANY', default=9, cast=int)

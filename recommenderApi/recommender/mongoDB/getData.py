@@ -11,8 +11,6 @@ class MongoConnection:
         return None
     
     def connect_to_mongo(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
-        # mongodb_link='mongodb+srv://urrevs:urrevsrocks@urrevs-mobile.9hc73.mongodb.net/urrevs?retryWrites=true&w=majority'
-        # print(mongodb_link)
         client = MongoClient(mongodb_link, tlsCAFile=certifi.where())
         self.db = client[mongodb_name]
         return self.db
@@ -74,56 +72,46 @@ class MongoConnection:
         phones = phones_col.find({'createdAt': {'$gte': date}}, projection)
         return phones
 
-    # pqueslikes, question
     def get_product_reviews_likes_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_likes_col = self.db['prevslikes']
         likes = prevs_likes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
-        # check if this like is new or not
         # add identifier to the like
         likes_lst: list = []
         for like in likes:
             likes_lst.append({'id': str(like['user']), 'review': f"0{like['review']}"})
         return likes_lst
     
-    # cqueslikes, question
     def get_company_reviews_likes_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_likes_col = self.db['crevslikes']
-        likes = crevs_likes_col.find({'createdAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
-        # check if this like is new or not
+        likes = crevs_likes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'review': 1})
         # add identifier to the like
         likes_lst: list = []
         for like in likes:
             likes_lst.append({'id': str(like['user']), 'review': f"1{like['review']}"})
         return likes_lst
 
-    # pquesunlikes, question
     def get_product_reviews_unlikes_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_unlikes_col = self.db['prevsunlikes']
         unlikes = prevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
-        # check if this unlike is new or not
         # add identifier to the unlike
         unlikes_lst: list = []
         for unlike in unlikes:
             unlikes_lst.append({'id': str(unlike['user']), 'review': f"0{unlike['review']}"})
         return unlikes_lst
 
-    # cquesunlikes, question
     def get_company_reviews_unlikes_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_unlikes_col = self.db['crevsunlikes']
         unlikes = crevs_unlikes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'review': 1})
-        # check if this unlike is new or not
         # add identifier to the unlike
         unlikes_lst: list = []
         for unlike in unlikes:
             unlikes_lst.append({'id': str(unlike['user']), 'review': f"1{unlike['review']}"})
         return unlikes_lst
-        # return unlikes
-
-    # pquesanswers, question
+    
     def get_product_reviews_comments_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_comments_col = self.db['prevscomments']
@@ -133,9 +121,7 @@ class MongoConnection:
         for comment in comments:
             comments_lst.append({'id': str(comment['user']), 'review': f"0{comment['review']}"})
         return comments_lst
-        # return comments
-
-    # cquesanswers, question
+    
     def get_company_reviews_comments_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_comments_col = self.db['crevscomments']
@@ -145,8 +131,7 @@ class MongoConnection:
         for comment in comments:
             comments_lst.append({'id': str(comment['user']), 'review': f"1{comment['review']}"})
         return comments_lst
-        # return comments
-
+    
     def get_product_reviews_seemores_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_seemores_col = self.db['prevsseemores']
@@ -156,8 +141,7 @@ class MongoConnection:
         for seemore in seemores:
             seemores_lst.append({'id': str(seemore['user']), 'review': f"0{seemore['review']}"})
         return seemores_lst
-        # return seemores
-
+    
     def get_company_reviews_seemores_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_seemores_col = self.db['crevsseemores']
@@ -167,9 +151,7 @@ class MongoConnection:
         for seemore in seemores:
             seemores_lst.append({'id': str(seemore['user']), 'review': f"1{seemore['review']}"})
         return seemores_lst
-        # return seemores
-
-    # pquesfullscreens, question
+    
     def get_product_reviews_fullscreens_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_fullscreens_col = self.db['prevsfullscreens']
@@ -179,9 +161,7 @@ class MongoConnection:
         for fullscreen in fullscreens:
             fullscreens_lst.append({'id': str(fullscreen['user']), 'review': f"0{fullscreen['review']}"})
         return fullscreens_lst
-        # return fullscreens
-
-    # cquesfullscreens, question
+    
     def get_company_reviews_fullscreens_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_fullscreens_col = self.db['crevsfullscreens']
@@ -191,9 +171,7 @@ class MongoConnection:
         for fullscreen in fullscreens:
             fullscreens_lst.append({'id': str(fullscreen['user']), 'review': f"1{fullscreen['review']}"})
         return fullscreens_lst
-        # return fullscreens
-
-    # pqueshates, question
+    
     def get_product_reviews_hates_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         prevs_hates_col = self.db['prevshates']
@@ -203,9 +181,7 @@ class MongoConnection:
         for hate in hates:
             hates_lst.append({'id': str(hate['user']), 'review': f"0{hate['review']}"})
         return hates_lst
-        # return hates
-
-    # cqueshates, question
+    
     def get_company_reviews_hates_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         crevs_hates_col = self.db['crevshates']
@@ -215,7 +191,156 @@ class MongoConnection:
         for hate in hates:
             hates_lst.append({'id': str(hate['user']), 'review': f"1{hate['review']}"})
         return hates_lst
-        # return hates
+    
+    # ------------------------------------------------------------------------------------------------------
+
+    def get_product_questions_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_col = self.db['pques']
+        projection = {
+            '_id': 1, 'user': 1, 'phone': 1, 'content': 1, 'createdAt': 1, 'acceptedAns': 1
+        }
+        pques = pques_col.find({'createdAt': {'$gte': date}}, projection)
+        return pques
+
+    def get_company_questions_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_col = self.db['cques']
+        projection = {
+            '_id': 1, 'user': 1, 'company': 1, 'content': 1, 'createdAt': 1, 'acceptedAns': 1
+        }
+        cques = cques_col.find({'createdAt': {'$gte': date}}, projection)
+        return cques
+
+    def get_product_questions_upvotes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_upvotes_col = self.db['pqueslikes']
+        upvotes = pques_upvotes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the like
+        upvotes_lst: list = []
+        for upvote in upvotes:
+            upvotes_lst.append({'id': str(upvote['user']), 'question': f"2{upvote['question']}"})
+        return upvotes_lst
+    
+    def get_company_questions_upvotes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_upvotes_col = self.db['cqueslikes']
+        upvotes = cques_upvotes_col.find({'updatedAt': {'$gte': date}, 'unliked': False}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the like
+        upvotes_lst: list = []
+        for upvote in upvotes:
+            upvotes_lst.append({'id': str(upvote['user']), 'question': f"3{upvote['question']}"})
+        return upvotes_lst
+    
+    def get_product_questions_downvotes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_downvotes_col = self.db['pquesunlikes']
+        downvotes = pques_downvotes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the unlike
+        downvotes_lst: list = []
+        for downvote in downvotes:
+            downvotes_lst.append({'id': str(downvote['user']), 'question': f"2{downvote['question']}"})
+        return downvotes_lst
+
+    def get_company_questions_downvotes_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_downvotes_col = self.db['cquesunlikes']
+        downvotes = cques_downvotes_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the unlike
+        downvotes_lst: list = []
+        for downvote in downvotes:
+            downvotes_lst.append({'id': str(downvote['user']), 'question': f"3{downvote['question']}"})
+        return downvotes_lst
+
+    def get_product_questions_answers_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_answers_col = self.db['pquesanswers']
+        answers = pques_answers_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the comment
+        answers_lst: list = []
+        for answer in answers:
+            answers_lst.append({'id': str(answer['user']), 'question': f"2{answer['question']}"})
+        return answers_lst
+
+    def get_company_questions_answers_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_answers_col = self.db['cquesanswers']
+        answers = cques_answers_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the comment
+        answers_lst: list = []
+        for answer in answers:
+            answers_lst.append({'id': str(answer['user']), 'question': f"3{answer['question']}"})
+        return answers_lst
+
+    def get_product_questions_fullscreens_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_fullscreens_col = self.db['pquesfullscreens']
+        fullscreens = pques_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the fullscreen
+        fullscreens_lst: list = []
+        for fullscreen in fullscreens:
+            fullscreens_lst.append({'id': str(fullscreen['user']), 'question': f"2{fullscreen['question']}"})
+        return fullscreens_lst
+
+    def get_company_questions_fullscreens_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_fullscreens_col = self.db['cquesfullscreens']
+        fullscreens = cques_fullscreens_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the fullscreen
+        fullscreens_lst: list = []
+        for fullscreen in fullscreens:
+            fullscreens_lst.append({'id': str(fullscreen['user']), 'question': f"3{fullscreen['question']}"})
+        return fullscreens_lst
+
+    def get_product_questions_added_acceptedanswer_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_accepteds_col = self.db['pquesaccepteds']
+        accepteds = pques_accepteds_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'question': 1})
+        return accepteds
+
+    def get_company_questions_added_acceptedanswer_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_accepteds_col = self.db['cquesaccepteds']
+        accepteds = cques_accepteds_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'question': 1})
+        return accepteds
+
+    def get_product_questions_removed_acceptedanswer_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_accepteds_col = self.db['pquesacceptedremoveds']
+        accepteds = pques_accepteds_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'question': 1})
+        return accepteds
+
+    def get_company_questions_removed_acceptedanswer_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_accepteds_col = self.db['cquesacceptedremoveds']
+        accepteds = cques_accepteds_col.find({'createdAt': {'$gte': date}}, {'_id': 0, 'question': 1})
+        return accepteds
+
+    def get_product_questions_aboutmyphones_visits_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        ques_visits_col = self.db['questionsaboutmyphonesvisits']
+        visits = ques_visits_col.find({'updatedAt': {'$gte': date}}, {'_id': 1})
+        return visits
+
+    def get_product_questions_hates_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        pques_hates_col = self.db['pqueshates']
+        hates = pques_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the hate
+        hates_lst: list = []
+        for hate in hates:
+            hates_lst.append({'id': str(hate['user']), 'question': f"2{hate['question']}"})
+        return hates_lst
+
+    def get_company_questions_hates_mongo(self, date: dt):
+        self.db = self.connect_to_mongo()
+        cques_hates_col = self.db['cqueshates']
+        hates = cques_hates_col.find({'updatedAt': {'$gte': date}}, {'_id': 0, 'user': 1, 'question': 1})
+        # add identifier to the hate
+        hates_lst: list = []
+        for hate in hates:
+            hates_lst.append({'id': str(hate['user']), 'question': f"3{hate['question']}"})
+        return hates_lst
 
     def get_last_training_time(self):
         col = self.db['constants']
@@ -241,7 +366,6 @@ class MongoConnection:
             sqlite.create_new_mobile_ifNotExist(mobile)
             lst_phones.append(mobile)
         print('add them to sqlite db')
-        print('get all prevs mongo')
         try:
             similar = Similar_Phones(mongo=self)
             df = similar.make_comparison_table(lst_phones)
@@ -251,6 +375,7 @@ class MongoConnection:
         except Exception as e:
             print('similar phones: ', e)
             print('failed to add similar phones')
+        print('get all prevs mongo')
         reviews = self.get_product_reviews_mongo(date)
         for review in reviews:
             sqlite.create_new_Preview_ifNotExist(review)
@@ -260,25 +385,71 @@ class MongoConnection:
         for review in reviews:
             sqlite.create_new_Creview_ifNotExist(review)
         print('add them to sqlite db')
-        print('finish adding all users, companies and mobiles')
+        print('get all pques mongo')
+        product_questions = self.get_product_questions_mongo(date)
+        for question in product_questions:
+            sqlite.create_new_Pquestion_ifNotExist(question)
+        print('add them to sqlite db')
+        print('get all pques accepted answer')
+        questions = self.get_product_questions_added_acceptedanswer_mongo(date)
+        for question in questions:
+            sqlite.set_Pques_accepted_answer(question)
+        questions = self.get_product_questions_removed_acceptedanswer_mongo(date)
+        for question in questions:
+            sqlite.set_Pques_accepted_answer(question, accepted_answer=False)
+        print('finish updating all pques accepted answer')
+        print('get all cques mongo')
+        questions = self.get_company_questions_mongo(date)
+        for question in questions:
+            sqlite.create_new_Cquestion_ifNotExist(question)
+        print('add them to sqlite db')
+        print('get all cques accepted answer')
+        questions = self.get_company_questions_added_acceptedanswer_mongo(date)
+        for question in questions:
+            sqlite.set_Cques_accepted_answer(question)
+        questions = self.get_company_questions_removed_acceptedanswer_mongo(date)
+        for question in questions:
+            sqlite.set_Cques_accepted_answer(question, accepted_answer=False)
+        print('finish updating all pques accepted answer')
+        print('finish adding all users, companies, mobiles, reviews and questions')
+        return product_questions
 
     def get_all_items_trackers_mongo(self, date: dt):
         trackers = {
-            'product': {
-                'LIKE': self.get_product_reviews_likes_mongo(date),
-                'UNLIKE': self.get_product_reviews_unlikes_mongo(date),
-                'COMMENT': self.get_product_reviews_comments_mongo(date),
-                'SEE_MORE': self.get_product_reviews_seemores_mongo(date),
-                'FULL_SCREEN': self.get_product_reviews_fullscreens_mongo(date),
-                'DONT_LIKE': self.get_product_reviews_hates_mongo(date)
+            'reviews': {
+                'product': {
+                    'LIKE': self.get_product_reviews_likes_mongo(date),
+                    'UNLIKE': self.get_product_reviews_unlikes_mongo(date),
+                    'COMMENT': self.get_product_reviews_comments_mongo(date),
+                    'SEE_MORE': self.get_product_reviews_seemores_mongo(date),
+                    'FULL_SCREEN': self.get_product_reviews_fullscreens_mongo(date),
+                    'DONT_LIKE': self.get_product_reviews_hates_mongo(date)
+                },
+                'company': {
+                    'LIKE': self.get_company_reviews_likes_mongo(date),
+                    'UNLIKE': self.get_company_reviews_unlikes_mongo(date),
+                    'COMMENT': self.get_company_reviews_comments_mongo(date),
+                    'SEE_MORE': self.get_company_reviews_seemores_mongo(date),
+                    'FULL_SCREEN': self.get_company_reviews_fullscreens_mongo(date),
+                    'DONT_LIKE': self.get_company_reviews_hates_mongo(date)
+                }
             },
-            'company': {
-                'LIKE': self.get_company_reviews_likes_mongo(date),
-                'UNLIKE': self.get_company_reviews_unlikes_mongo(date),
-                'COMMENT': self.get_company_reviews_comments_mongo(date),
-                'SEE_MORE': self.get_company_reviews_seemores_mongo(date),
-                'FULL_SCREEN': self.get_company_reviews_fullscreens_mongo(date),
-                'DONT_LIKE': self.get_company_reviews_hates_mongo(date)
+            'questions': {
+                'product': {
+                    'UPVOTE': self.get_product_questions_upvotes_mongo(date),
+                    'DOWNVOTE': self.get_product_questions_downvotes_mongo(date),
+                    'ANSWER': self.get_product_questions_answers_mongo(date),
+                    'FULL_SCREEN': self.get_product_questions_fullscreens_mongo(date),
+                    'ABOUT_MYPHONE_VISIT': self.get_product_questions_aboutmyphones_visits_mongo(date),
+                    'DONT_LIKE': self.get_product_questions_hates_mongo(date)
+                },
+                'company': {
+                    'UPVOTE': self.get_company_questions_upvotes_mongo(date),
+                    'DOWNVOTE': self.get_company_questions_downvotes_mongo(date),
+                    'ANSWER': self.get_company_questions_answers_mongo(date),
+                    'FULL_SCREEN': self.get_company_questions_fullscreens_mongo(date),
+                    'DONT_LIKE': self.get_company_questions_hates_mongo(date)
+                }
             }
         }
         return trackers
@@ -300,19 +471,13 @@ class MongoConnection:
             comparisons_lst.append({'id': str(comparison['user']), 'phone': str(comparison['dstPhone'])})
         return comparisons_lst
 
-    def get_all_products_trackers_mongo(self, date: dt):
+    def get_all_products_trackers_mongo(self, date: dt, questions: list = []):
         trackers = {
             'mobile': {
                 'PROFILE': self.get_phone_profile_visit_mongo(date),
                 'COMPARE': self.get_phone_comparison_mongo(date),
-                # Add Question Tracker
+                'QUESTION': questions
             }
         }
         return trackers
 
-
-    # phone question
-    # pques _id, user, createdAt, phone, content, acceptedAns
-    # If null AcceptedAnswer = false else AcceptedAnswer = true
-    # cques _id, user, createdAt, company, content, acceptedAns
-    # If null AcceptedAnswer = false else AcceptedAnswer = true
