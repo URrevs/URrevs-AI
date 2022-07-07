@@ -18,7 +18,7 @@ class Scaler:
     
     def rescale(self, input1):
         old = ((input1-self.out_[0])/(self.out_[1]-self.out_[0]))*(self.in_[1]-self.in_[0])+self.in_[0]
-        return ((old-self.out_[0])/(self.out_[1]-self.out_[0]))*(self.in2_[1]-self.in2_[0])+self.in2_[0]
+        return ((old-self.in2_[0])/(self.in2_[1]-self.in2_[0]))*(self.out_[1]-self.out_[0])+self.out_[0]
     
     def submit_range(self):
         self.in_ = self.in2_
@@ -185,16 +185,16 @@ class Similar_Phones:
                         maximum = max(col.values)
                         if minimum > old_minimum and maximum < old_maximum:
                             col = col.apply(scaler.scale)
-                            col = pd.concat([oldDF.loc[:, internal[spec]], col], axis = 0).fillna(0)
+                            col = pd.concat([oldDF.loc[:, val], col], axis = 0).fillna(0)
                             newDF = pd.concat([newDF, col], axis = 1)
                         else:
                             if minimum > old_minimum: minimum = old_minimum
                             if maximum < old_maximum: maximum = old_maximum
                             scaler.add_new_range((minimum, maximum))
-                            old_col = oldDF.loc[:, internal[spec]].apply(scaler.rescale)
+                            old_col = oldDF.loc[:, val].apply(scaler.rescale)
                             scaler.submit_range()
                             col = col.apply(scaler.scale)
-                            col = pd.concat([old_col, col], axis = 0)
+                            col = pd.concat([old_col, col], axis = 0, ignore_index=True)
                             newDF = pd.concat([newDF, col], axis = 1)
                     external[val] = (minimum, maximum)
             # --------------------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ class Similar_Phones:
                     enc = one_hot_encoder(external[spec])
                     col = enc.transform(col.loc[:, spec].values, self.specs[spec]/2)
                     old_cols = oldDF.loc[:, enc.get_features()]
-                    col = pd.concat([old_cols, col], axis = 0).fillna(0)
+                    col = pd.concat([old_cols, col], axis = 0, ignore_index=True).fillna(0)
                     newDF = pd.concat([newDF, col], axis = 1)
                 external[spec] = enc
             # --------------------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ class Similar_Phones:
                     enc = one_hot_encoder(external[spec])
                     col = enc.transform(col.loc[:, spec].values, self.specs[spec]/2)
                     old_cols = oldDF.loc[:, enc.get_features()]
-                    col = pd.concat([old_cols, col], axis = 0).fillna(0)
+                    col = pd.concat([old_cols, col], axis = 0, ignore_index=True).fillna(0)
                     newDF = pd.concat([newDF, col], axis = 1)
                 external[spec] = enc
             # --------------------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ class Similar_Phones:
                     enc = one_hot_encoder(external['cpu'])
                     col = enc.transform(columns.loc[:, 'col'], self.specs['cpu']/4)
                     old_cols = oldDF.loc[:, enc.get_features()]
-                    col = pd.concat([old_cols, col], axis = 0).fillna(0)
+                    col = pd.concat([old_cols, col], axis = 0, ignore_index=True).fillna(0)
                     newDF = pd.concat([newDF, col], axis = 1)
                 external['cpu'] = enc
             # --------------------------------------------------------------------------------------------
@@ -287,20 +287,23 @@ class Similar_Phones:
                     if minimum > old_minimum and maximum < old_maximum:
                         scaler = Scaler(in_ = (old_minimum, old_maximum), out_ = (0, self.specs[spec]))
                         cols[spec] = cols[spec].apply(scaler.scale)
-                        newDF = pd.concat([newDF, cols[spec]], axis = 1)
+                        col = pd.concat([oldDF.loc[:, spec], cols[spec]], axis = 0, ignore_index=True).fillna(0)
+                        newDF = pd.concat([newDF, col], axis = 1)
                     else:
                         if minimum > old_minimum: minimum = old_minimum
                         if maximum < old_maximum: maximum = old_maximum
                         scaler.add_new_range((minimum, maximum))
                         old_col = oldDF.loc[:, spec].apply(scaler.rescale)
+                        # old_col = oldDF.loc[:, spec]
                         scaler.submit_range()
                         cols[spec] = cols[spec].apply(scaler.scale)
-                        cols[spec] = pd.concat([old_col, cols[spec]], axis = 0)
-                        newDF = pd.concat([newDF, cols[spec]], axis = 1)
+                        cols[spec] = pd.concat([old_col, cols[spec]], axis = 0, ignore_index=True)
+                        col = pd.concat([oldDF.loc[:, spec], cols[spec]], axis = 0, ignore_index=True).fillna(0)
+                        newDF = pd.concat([newDF, col], axis = 1)
                 external[spec] = (minimum, maximum)
         if not repeat: newDF.index = cols['_id']
         else: newDF.index = pd.concat([oldDF['_id'], cols['_id']], axis = 0)
-
+        # print(newDF)
         newDF.fillna(0, inplace = True)
         dump(external, open('recommender/mobiles1/constraints.pkl', 'wb'))
         print('finish generating all values')
