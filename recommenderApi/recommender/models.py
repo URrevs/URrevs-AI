@@ -1,3 +1,4 @@
+from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS
 from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
