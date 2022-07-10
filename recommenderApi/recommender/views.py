@@ -2,6 +2,7 @@
 # from time import sleep
 from django.http import JsonResponse
 # from django.shortcuts import render
+from recommender.collobarative.questions import *
 from rest_framework import status
 # from django import forms
 from recommenderApi.imports import *
@@ -42,15 +43,21 @@ def index(request):
     # except:
     #     print('error')
     # print(get_phones())
-    # update_values(dt(2020, 1,1))
+
+    # update_values(dt(2022, 7, 1))
+    
     # train_and_update(dt(2020, 1,1), first=False)
     # Trackers(loadfile=True).showTrackers()
+    # for user in Trackers(loadfile=True).getAllUsers():
+    #     print(user)
     # Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).showTrackers()
     # print(Trackers(loadfile=True).getHatesReviews('62bcf0887098c747b5c99613'))
     # train(first = True)
+
     # SeenTable(loadfile=True).resetSeenTable()
     # print('seentable============================')
     # SeenTable(loadfile=True).showSeenTable()
+    
     # model = MatrixFactorization(n_epochs = 30, alert = True)
     # model.load_model()
     # print(model.recommend_items('628a60526811b1d11dbba4e1'))
@@ -93,7 +100,14 @@ def index(request):
     # sql.update_add_Most_liked_Prev('626b28707fe7587a42e3dfeb', '627406a18cc1cefd58623f9e')
     # like = sql.get_Most_liked_Prev('626b28707fe7587a42e3dfeb')
     # print(like)
+
     # update_values(dt(2022, 7, 1))
+    # ques = getAllQuetion(filterType=2)
+    # print('all ques loaded')
+    # print(filterQuetions(user='626b28707fe7587a42e3dfeb', questions=ques.keys(), sort=[], filterType=2, 
+    #         sort_exist=False))
+
+    
     # MongoConnection().get_product_questions_mongo(dt(2022, 7, 1))
     # SQLite_Database().add_Prev_like('62c22279d7965c45d2c698eb', '62c264e5ad43f157e4ef19b6')
     # SQLite_Database().create_Preview(id='fferre', user='62c22279d7965c45d2c698eb', phone='6256a76d5f87fa90093a4bdb',
@@ -120,18 +134,18 @@ def reset_files(request) -> JsonResponse:
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             try:
-                Trackers().resetTrackersFile()
-                Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
-                SeenTable().resetSeenTable()
+                # Trackers().resetTrackersFile()
+                # Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
+                # SeenTable().resetSeenTable()
                 response = {
                     'message': 'All files reseted'
                 } 
                 return JsonResponse(response, status=status.HTTP_200_OK)
             except Exception as e:
+                print(e)
                 error = {
                     'success': False,
                     'status': 'process failed',
-                    'error': str(e)
                 }
                 return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
@@ -154,35 +168,35 @@ def start_training(request) -> JsonResponse:
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             reqBody = request.GET
-            # try:
             try:
-                first = bool(reqBody.get('first') == '1')
-            except:
-                first = False
-            # Sync training run here
-            if first: date = dt(2018, 1, 1)
-            else:
                 try:
-                    var = load(open('recommenderApi/vars.pkl', 'rb'))
-                    date = var['date']
+                    first = bool(reqBody.get('first') == '1')
                 except:
-                    date =  MongoConnection().get_last_training_time()
-            
-            print('start async task')
-            print(date)
-            start_async.delay(date, first)
-            # train_and_update(date, first=first)
-            response = {
-                'message': 'Training started'
-            }
-            return JsonResponse(response, status=status.HTTP_200_OK)
-            # except Exception as e:
-            #     error = {
-            #         'success': False,
-            #         'status': 'process failed',
-            #         'error': str(e)
-            #     }
-            #     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    first = False
+                # Sync training run here
+                if first: date = dt(2018, 1, 1)
+                else:
+                    try:
+                        var = load(open('recommenderApi/vars.pkl', 'rb'))
+                        date = var['date']
+                    except:
+                        date =  MongoConnection().get_last_training_time()
+                
+                print('start async task')
+                print(date)
+                start_async.delay(date, first)
+                # train_and_update(date, first=first)
+                response = {
+                    'message': 'Training started'
+                }
+                return JsonResponse(response, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(e)
+                error = {
+                    'success': False,
+                    'status': 'process failed',
+                }
+                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             error = {
                 'success': False,
@@ -246,10 +260,10 @@ def get_recommendations(request, userId: str) -> JsonResponse:
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)
                 except Exception as e:
+                    print(e)
                     error = {
                         'success': False,
                         'status': 'process failed',
-                        'error': str(e)
                     }
                     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except Exception as e:
@@ -295,10 +309,10 @@ def get_anonymous_recommendations(request) -> JsonResponse:
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)
                 except Exception as e:
+                    print(e)
                     error = {
                         'success': False,
-                        'status': 'process failed',
-                        'error': str(e)
+                        'status': 'process failed'
                     }
                     return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             except:
@@ -339,7 +353,8 @@ def get_review_grade(request):
                         'grade': grade.calc_TF_IDF(reviews)
                     }
                     return JsonResponse(response, status=status.HTTP_200_OK)
-                except:
+                except Exception as e:
+                    print(e)
                     error = {
                         'success': False,
                         'status': 'process failed'
@@ -381,7 +396,8 @@ def get_similiar_phones(request, phoneId):
                     'similiar_phones': recs
                 }
                 return JsonResponse(response, status=status.HTTP_200_OK)
-            except:
+            except Exception as e:
+                print(e)
                 error = {
                     'success': False,
                     'status': 'process failed'

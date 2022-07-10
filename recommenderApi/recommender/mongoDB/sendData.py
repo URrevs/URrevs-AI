@@ -7,7 +7,7 @@ def send_date(time: dt):
         vars = load(open('recommenderApi/vars.pkl', 'rb'))
     except:
         vars = {}
-    vars['time'] = time
+    vars['date'] = time
     dump(vars, open('recommenderApi/vars.pkl', 'wb'))
     payload = json.dumps({"date": time.isoformat()})
     headers = {
@@ -16,3 +16,4 @@ def send_date(time: dt):
     }
     response = requests.request("PUT", url, headers=headers, data=payload)
     print("Update training time: ", response.status_code == 200)
+    
