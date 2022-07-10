@@ -41,38 +41,46 @@ class SeenTable:
     def check_item_not_exist(self, userid, itemId):
         return self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == itemId)].empty
 
-    def check_if_review_shown_before(self, userid, reviews, spaces, num=0):
+    def check_if_review_shown_before(self, userid, reviews, spaces, num='', known=[]):
         """
         reviews is a list of reviews
         """
         revs = []; spcs = []
         revs2 = []; spcs2 = []
-        if num == 0: num = len(reviews)
-        i = 0
-        for i in range(len(reviews)):
-            if not self.df.empty:
-                if i < num:
-                    if self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == reviews[i])].empty:
-                        if len(reviews[i]) == 25: revs.append(reviews[i][1:])
-                        elif len(reviews[i]) == 24: revs.append(reviews[i])
-                        spcs.append(spaces[i])
-                        self.addToSeenTable(userid, [reviews[i]])
-                else: 
-                    if len(reviews[i]) == 25: revs2.append(reviews[i][1:])
-                    elif len(reviews[i]) == 24: revs2.append(reviews[i])
-                    spcs2.append(spaces[i])
-            else:
-                for i in range(len(reviews)):
-                    if i < num:
-                        if len(reviews[i]) == 25: revs.append(reviews[i][1:])
-                        elif len(reviews[i]) == 24: revs.append(reviews[i])
-                        spcs.append(spaces[i])
-                        self.addToSeenTable(userid, [reviews[i]])
-                    else: 
-                        if len(reviews[i]) == 25: revs2.append(reviews[i][1:])
-                        elif len(reviews[i]) == 24: revs2.append(reviews[i])
+        if num == '': num = len(reviews)
+        counter = 0
+        if not self.df.empty:
+            for i in range(len(reviews)):
+                length = len(reviews[i])
+                if length == 25: rev = reviews[i][1:]
+                elif length == 23: rev = f'6{reviews[i]}'
+                else: rev = reviews[i]
+                if rev not in known:
+                    if counter < num:
+                        if self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == reviews[i])].empty:
+                            revs.append(rev)
+                            spcs.append(spaces[i])
+                            self.addToSeenTable(userid, [reviews[i]])
+                            counter += 1
+                    else:
+                        revs2.append(rev)
                         spcs2.append(spaces[i])
-        if num == 0: return revs, spcs
+        else:
+            for i in range(len(reviews)):
+                length = len(reviews[i])
+                if length == 25: rev = reviews[i][1:]
+                elif length == 23: rev = f'6{reviews[i]}'
+                else: rev = reviews[i]
+                if rev not in known:
+                    if counter < num:
+                        revs.append(rev)
+                        spcs.append(spaces[i])
+                        self.addToSeenTable(userid, [reviews[i]])
+                        counter += 1
+                    else: 
+                        revs2.append(rev)
+                        spcs2.append(spaces[i])
+        if num == '': return revs, spcs
         else: return revs, spcs, revs2, spcs2
 
     def removeExpiredDateFromSeenTable(self, amount=432000):

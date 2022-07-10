@@ -62,26 +62,27 @@ def filterQuetions(user:str, ques1:list, sort:list, ques2:list, filterType:int=2
         filteredQuestions = []; filteredRate = []
         if ques != None:
             for i in range(len(ques)):
-                if counter == 0 and ques[i] > -0.5:
-                    if(allQuestions[ques[i]]['question_item'] in userItems):
-                        if(allQuestions[ques[i]]['owner_has_item'] == 1):
-                            filteredQuestions.append(ques[i])
-                            if counter == 0: filteredRate.append(sort[i])
-                            else: filteredRate.append(allQuestions[ques[i]]['num_of_upvotes'])
-                        else:
-                            if(allQuestions[ques[i]]['has_accepted_answer'] == 0):
+                if ques[i] not in filteredQuestions:
+                    if counter == 0 and sort[i] > -0.5:
+                        if(allQuestions[ques[i]]['question_item'] in userItems):
+                            if(allQuestions[ques[i]]['owner_has_item'] == 1):
                                 filteredQuestions.append(ques[i])
                                 if counter == 0: filteredRate.append(sort[i])
                                 else: filteredRate.append(allQuestions[ques[i]]['num_of_upvotes'])
-                    else:
-                        if(allQuestions[ques[i]]['has_accepted_answer'] == 1):
-                            filteredQuestions.append(ques[i])
-                            if counter == 0: filteredRate.append(sort[i])
-                            else: filteredRate.append(allQuestions[ques[i]]['num_of_upvotes'])
-            
+                            else:
+                                if(allQuestions[ques[i]]['has_accepted_answer'] == 0):
+                                    filteredQuestions.append(ques[i])
+                                    if counter == 0: filteredRate.append(sort[i])
+                                    else: filteredRate.append(allQuestions[ques[i]]['num_of_upvotes'])
+                        else:
+                            if(allQuestions[ques[i]]['has_accepted_answer'] == 1):
+                                filteredQuestions.append(ques[i])
+                                if counter == 0: filteredRate.append(sort[i])
+                                else: filteredRate.append(allQuestions[ques[i]]['num_of_upvotes'])
+
         if (counter == 1) and len(filteredRate) > 1:
             maximum = max(filteredRate)
-            if maximum == 0: 
+            if maximum == 0:
                 maximum = 1
                 scaler = Scaler(in_=(0, maximum), out_=(0.5, 0.9))
                 filteredRate = [scaler.scale(x) for x in filteredRate]
@@ -91,6 +92,4 @@ def filterQuetions(user:str, ques1:list, sort:list, ques2:list, filterType:int=2
         counter += 1
 
     return filteredQuestions, filteredRate
-
-
-
+    

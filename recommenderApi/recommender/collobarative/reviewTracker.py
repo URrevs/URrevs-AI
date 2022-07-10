@@ -58,19 +58,14 @@ class Trackers:
         return self.df.iloc[self.df.loc[(self.df['user_id'] == userId) & (self.df['item_id'].str.startswith(item_type)), 'rating'].idxmax()]['item_id']
 
     def getHatesReviews(self, userId):
-        lst = self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] == REVIEW_DONT_LIKE), 'item_id'].values
+        lst = self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] < -0.5), 'item_id'].values
         for item in lst:
             if len(item) == 25: item = item[1:]
         return lst
+
     def getMaxNLikedMobile(self, userId, n):
-        # model = MatrixFactorization(columns=['user_id', 'product_id', 'rating', 'rating_pred'])
-        # mobiles = set(model.recommend_mobiles(userId, n_recommendations=n, pred=False).flatten())
         mobiles_lst = load(open(f'recommenderApi/vars.pkl', 'rb'))['mobiles']
         lst = []
-        # for mobile in mobiles: 
-        #     if mobile in mobiles_lst:
-        #         lst.append(mobile); n -= 1
-        #         if n == 0: return lst
         userDF = self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] > 0.7) & (self.df['product_id'].isin(mobiles_lst))]
         for mobile in userDF.sort_values(by='rating', ascending=False)['product_id'].values:
             if mobile in mobiles_lst:
