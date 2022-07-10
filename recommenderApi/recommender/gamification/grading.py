@@ -10,7 +10,8 @@ class Grading:
             output: Nothing
         '''
         self.alert = alert
-        nltk.data.path.append(f'{os.getcwd()}\\nltk_data')
+        nltk.data.path.append(f'{os.getcwd()}/nltk_data')
+        nltk.data.path.append(f'{os.getcwd()}/nltk_data/tokenizers')
         return
     
     def readFile(self, path: str = '') -> list:
