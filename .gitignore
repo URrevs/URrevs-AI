@@ -190,3 +190,4 @@ recommenderApi/recommender/gamification/test.py
 recommenderApi/recommender/gamification/tfidf1.pkl
 recommenderApi/recommender/mobiles1/mobiles_table_mod.csv
 recommenderApi/recommenderApi/env.txt
+recommenderApi/recommender/mobiles1/cols.csv

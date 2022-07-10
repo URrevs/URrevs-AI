@@ -14,8 +14,9 @@ class ReviewContentRecommender:
             parameters: the file name
             output: the data and the check
         '''
+        self.recommend_type = recommend_type
         sqlite = SQLite_Database()
-        if recommend_type == 'product':
+        if self.recommend_type == 'product':
             self.data = sqlite.get_Preview()
         else:
             self.data = sqlite.get_Creview()
@@ -65,12 +66,15 @@ class ReviewContentRecommender:
             output: none
         '''
         self.load_data(recommend_type=recommend_type)
+        print('data loaded')
         self.prepare_data()
+        print('data prepared')
         self.scale_data()
+        print('data scaled')
         dump(self.data, open(path, 'wb'))
         return
 
-    def recommend(self, referenceId: str = '', recommend_type: str = 'product', n_recommendations: int = 5, 
+    def recommend(self, referenceId: str = '', recommend_type: str = 'product', n_recommendations: int = -1, 
             items: list = [], known_items:list = []):
         '''
             function to recommend reviews
@@ -87,6 +91,7 @@ class ReviewContentRecommender:
             data.index = items
         if len(known_items) != 0:
             data = data[~data.index.isin(known_items)]
+        if n_recommendations == -1: n_recommendations = data.shape[0]-1 # len(items)-1
         nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=n_recommendations+1, algorithm='ball_tree')
         nbrs.fit(data.values)
         distances, indices = nbrs.kneighbors(data.loc[referenceId, :].values.reshape(1, -1))

@@ -5,11 +5,20 @@ from recommender.mongoDB.sendData import send_date
 from recommender.sqliteDB.data import SQLite_Database
 from recommenderApi.imports import np, pd, dt, dump, load, Review_Tracker, Mobile_Tracker, Question_Tracker
 from recommender.collobarative.recommend import MatrixFactorization
+from recommender.collobarative.questions import questions_to_dic
 from recommender.gamification.grading import Grading
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, REMOVE_FROM_SEEN_TABLE_AFTER_DAYS, EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
 from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
 from recommender.models import *
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
+
+def get_max_n_liked_companies(mobiles: list):
+    companies = []
+    sql = SQLite_Database()
+    for mobile in mobiles:
+        try: companies.append(sql.get_company_from_mobile(mobile))
+        except: pass
+    return companies
 
 def train(first: bool = False):
     try:
@@ -127,11 +136,23 @@ def get_all_mobiles_have_reviews():
     sqlite = SQLite_Database()
     return sqlite.get_all_mobiles_have_reviews()
 
+def generate_questions():
+    sql = SQLite_Database()
+    try:
+        pques = sql.get_Pquestion()
+        dump(questions_to_dic(pques, 2), open('recommender/collobarative/pques.pkl', 'wb'))
+        cques = sql.get_Cquestion()
+        dump(questions_to_dic(cques, 3), open('recommender/collobarative/cques.pkl', 'wb'))
+    except Exception as e:
+        print('Generating Questions: ', e)
+
 def update_values(date: dt, first: bool = False):
     try:
         print('----------------------------- Start Updating Values ------------------------------------')
         mongo = MongoConnection()
         product_questions = mongo.update_all_fixed_data_mongo(date=date, first=first)
+        print('finish all fixed mongo data')
+        generate_questions()
         print('updated all fixed data')
         review = ReviewContentRecommender()
         review.preprocessing()
@@ -158,41 +179,74 @@ def update_values(date: dt, first: bool = False):
         print('downgraded old items')
         items_trackers_file.fill_most_liked_items()
         print('filled most liked items for all users')
-        items_trackers_file.saveTrackers()
-        print('items trackers saved')
-        mobile_trackers_file = Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True)
-        # mobile_trackers_file.resetTrackersFile(col='product_id')
-        mobile_trackers = mongo.get_all_products_trackers_mongo(date=date)
-        print('got all mobiles trackers')
-        time = dt.now()
-        for item_type in mobile_trackers.keys():
-            for tracker_type in mobile_trackers[item_type].keys():
-                mobile_trackers_file.addMobilesTrackers(mobile_trackers[item_type][tracker_type], Mobile_Tracker[tracker_type])
-        print('added mobile trackers')
-        mobile_trackers_file.down_old_items_grade()
-        print('downgraded old mobile')
-        mobile_trackers_file.saveTrackers()
-        print('mobile trackers saved')
-        SeenTable(loadfile=True).removeExpiredDateFromSeenTable(REMOVE_FROM_SEEN_TABLE_AFTER_DAYS * 86400)
-        print('removed expired date from seen table')
-        sqlite = SQLite_Database()
-        for user in items_trackers_file.usersDic.keys():
-            u = sqlite.get_user(id = user)
-            if u != None:
-                [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
-                sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
-        print('updated user ratios')
-        for item in items_trackers_file.interactions.keys():
-            update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
-        print('updated counts')
-        get_all_mobiles_have_reviews()
-        calc_anonymous_data()
-        print('calculated anonymous data')
-        users = {}
-        dump(users, open('recommender/users.pkl', 'wb'))
-        print('recommendation daily history erased')
-        send_date(time)
-        print('sent date')
+        # items_trackers_file.saveTrackers()
+        # print('items trackers saved')
+        # mobile_trackers_file = Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True)
+        # # mobile_trackers_file.resetTrackersFile(col='product_id')
+        # mobile_trackers = mongo.get_all_products_trackers_mongo(date=date)
+        # print('got all mobiles trackers')
+        # time = dt.now()
+        # for item_type in mobile_trackers.keys():
+        #     for tracker_type in mobile_trackers[item_type].keys():
+        #         mobile_trackers_file.addMobilesTrackers(mobile_trackers[item_type][tracker_type], Mobile_Tracker[tracker_type])
+        # print('added mobile trackers')
+        # mobile_trackers_file.down_old_items_grade()
+        # print('downgraded old mobile')
+        # mobile_trackers_file.saveTrackers()
+        # print('mobile trackers saved')
+        # SeenTable(loadfile=True).removeExpiredDateFromSeenTable(REMOVE_FROM_SEEN_TABLE_AFTER_DAYS * 86400)
+        # print('removed expired date from seen table')
+        # sqlite = SQLite_Database()
+        # for user in items_trackers_file.usersDic.keys():
+        #     u = sqlite.get_user(id = user)
+        #     if u != None:
+        #         [PR, CR, PQ, CQ] = update_ratios(items_trackers_file.usersDic[user], [u.PR, u.CR, u.PQ, u.CQ])
+        #         sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
+        # print('updated user ratios')
+        # for item in items_trackers_file.interactions.keys():
+        #     update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
+        # print('updated counts')
+        # get_all_mobiles_have_reviews()
+        # calc_anonymous_data()
+        # print('calculated anonymous data')
+        # if not first:
+        #     try:
+        #         recommendations = {}
+        #         MF_Model = MatrixFactorization()
+        #         users1 = items_trackers_file.getAllUsers()
+        #         for user in users1:
+        #             recommendations[user] = MF_Model.recommend_items(user)
+        #         dump(recommendations, open('recommender/collobarative/MF_items.pkl', 'wb'))
+        #         print('generating MF Items recommendation done successfully')
+        #     except Exception as e:
+        #         print('generating MF items: ', e)
+        #     try:
+        #         mobiles = {}
+        #         sql = SQLite_Database()
+        #         MF_Model = MatrixFactorization()
+        #         users2 = mobile_trackers_file.getAllUsers()
+        #         for user in users2:
+        #             phones = MF_Model.recommend_mobiles(user, n_recommendations=5)
+        #             companies = get_max_n_liked_companies(phones)
+        #             prevs = []; crevs = []; pques = []; cques = []
+        #             prevs.extend(sql.get_Previews_by_mobile(phones))
+        #             pques.extend(sql.get_Pquestions_by_mobiles(phones))
+        #             cques.extend(sql.get_Cquestions_by_company(companies))
+        #             crevs.extend(sql.get_Creviews_by_companies(companies))
+        #             mobiles[user] = {
+        #                 'phones': phones,
+        #                 'companies': companies,
+        #                 'lists': (prevs, crevs, pques, cques)
+        #             }
+        #         dump(mobiles, open('recommender/collobarative/MF_mobiles.pkl', 'wb'))
+        #         print('generating MF Mobiles recommendation done successfully')
+        #     except Exception as e:
+        #         print('generating MF mobiles: ', e)
+        # users = {}
+        # dump(users, open('recommender/users.pkl', 'wb'))
+        # print('old recommendation daily history erased')
+        # # send_date(time)
+        # # print('sent date')
     except Exception as e:
         print("Updating Values", e)
         pass

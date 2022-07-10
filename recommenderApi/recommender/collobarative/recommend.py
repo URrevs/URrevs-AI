@@ -83,20 +83,23 @@ class MatrixFactorization:
                 self.save_model(model_path=path)
             return False
 
-    def recommend_items(self, user: str, n_recommendations: int = 10, item_type = 0): 
+    def recommend_items(self, user: str): 
         self.load_model()
         seen_table = SeenTable('recommender/collobarative/seenTable.pkl', loadfile=True)
         items_known = seen_table.df.query(f'{self.columns[0]} == @user')[self.columns[1]]
-        result = self.matrix_fact.recommend(user=user, items_known=items_known, amount=n_recommendations, item_type=item_type)
-        recommendations = list(result[self.columns[1]].values)
-        spaces = list(result[self.columns[3]].values)
+        result = self.matrix_fact.recommend_items(user=user, items_known=items_known, productReviewAmount=32,
+            productQuestionAmount=24, companyReviewAmount = 16, companyQuestionAmount = 8)
+        return result
+        # recommendations = list(result[self.columns[1]].values)
+        # spaces = list(result[self.columns[3]].values)
         # the following line will be asynchronously executed
         # addToSeenTable(seenTable=seen_table, userId=user, itemIds=recommendations)
-        return recommendations, spaces
+        # return recommendations, spaces
 
     def recommend_mobiles(self, user: str, n_recommendations: int = 10):
         self.load_model(path = 'recommender/collobarative/MF_mobiles_model.pkl')
-        result = self.matrix_fact.recommend(user=user, amount=n_recommendations)
-        recommendations = result[[self.columns[1]]].values
-        return recommendations
+        result = self.matrix_fact.recommend_mobiles(user=user, amount=n_recommendations)
+        return result['product_id'].tolist()
+        # recommendations = result[[self.columns[1]]].values
+        # return recommendations
         

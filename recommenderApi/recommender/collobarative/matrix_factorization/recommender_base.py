@@ -167,15 +167,57 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
         """
         return []
 
-    def recommend(
+    def recommend_mobiles(
         self,
         user: Any,
         amount: int = 10,
-        items_known: list = None,
         include_user: bool = True,
         bound_ratings: bool = True,
         item_type = None,
     ) -> pd.DataFrame:
+        """
+        Returns a DataFrame of recommendations of items for a given user sorted from highest to lowest.
+        Args:
+            user (any): User_id to get recommendations for (not assigned user_id from self.user_id_map)
+            items_known (list, optional): List of items already known by user and to not be considered in recommendations. Defaults to None.
+            include_user (bool, optional): Whether to include the user_id in the output DataFrame or not. Defaults to True.
+            bound_ratings (bool): Whether to bound ratings in range [min_rating, max_rating] (default: True)
+        Returns:
+            pd.DataFrame: Recommendations DataFrame for user with columns user_id (optional), item_id, rating sorted from highest to lowest rating 
+        """
+        items = list(self.item_id_map.keys())
+        
+        # Get rating predictions for given user and all unknown items
+        items_recommend = pd.DataFrame({self.columns[0]: user, self.columns[1]: items})
+        items_recommend[self.columns[3]] = self.predict(
+            X=items_recommend, bound_ratings=False
+        )
+        # Sort and keep top n items
+        items_recommend.sort_values(by=self.columns[3], ascending=False, inplace=True)
+        if item_type != None:
+            items_recommend = items_recommend[items_recommend[self.columns[1]].astype(str).str[0] == str(item_type)].head(amount)
+        else:
+            items_recommend = items_recommend.head(amount)
+        # Bound ratings
+        if bound_ratings:
+            items_recommend[self.columns[3]] = items_recommend[self.columns[3]].clip(
+                lower=self.min_rating, upper=self.max_rating
+            )
+        if not include_user:
+            items_recommend.drop([self.columns[0]], axis="columns", inplace=True)
+        return items_recommend
+
+    def recommend_items(
+        self,
+        user: Any,
+        productReviewAmount: int = 32,
+        productQuestionAmount: int = 24,
+        companyReviewAmount: int = 16,
+        companyQuestionAmount: int = 8,
+        items_known: list = None,
+        include_user: bool = True,
+        bound_ratings: bool = True,
+    ) -> Tuple[list, list,list, list,list, list,list, list]:
         """
         Returns a DataFrame of recommendations of items for a given user sorted from highest to lowest.
 
@@ -188,6 +230,14 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
         Returns:
             pd.DataFrame: Recommendations DataFrame for user with columns user_id (optional), item_id, rating sorted from highest to lowest rating 
         """
+        productReviewId=[]
+        productReviewRate=[]
+        productQuestionId=[]
+        productQuestionRate=[]
+        companyQuestionId=[]
+        companyQuestionRate=[]
+        companyreviewId=[]
+        companyreviewRate=[]
         items = list(self.item_id_map.keys())
 
         # If items_known is provided then filter by items that the user does not know
@@ -196,26 +246,61 @@ class RecommenderBase(BaseEstimator, RegressorMixin, metaclass=ABCMeta):
             items = [item for item in items if item not in items_known]
 
         # Get rating predictions for given user and all unknown items
-        items_recommend = pd.DataFrame({self.columns[0]: user, self.columns[1]: items})
-        items_recommend[self.columns[3]] = self.predict(
+        items_recommend = pd.DataFrame({"user_id": user, "item_id": items})
+        items_recommend["rating_pred"] = self.predict(
             X=items_recommend, bound_ratings=False
         )
 
         # Sort and keep top n items
-        items_recommend.sort_values(by=self.columns[3], ascending=False, inplace=True)
-        if item_type != None:
-            items_recommend = items_recommend[items_recommend[self.columns[1]].astype(str).str[0] == str(item_type)].head(amount)
-        else:
-            items_recommend = items_recommend.head(amount)
+        items_recommend.sort_values(by="rating_pred", ascending=False, inplace=True)
         
+
+        indexs=items_recommend.index
+        for index in indexs:
+            item_id = items_recommend['item_id'][index]
+            rate = items_recommend['rating_pred'][index]
+            if item_id[0]=='0':
+                productReviewId.append(item_id)
+                productReviewRate.append(rate)
+            elif item_id[0]=='2':
+                productQuestionId.append(item_id)
+                productQuestionRate.append(rate)
+            elif item_id[0]=='1':
+                companyreviewId.append(item_id)
+                companyreviewRate.append(rate)
+            elif item_id[0]=='3':
+                companyQuestionId.append(item_id)
+                companyQuestionRate.append(rate)     
+                 
+        """ print(productReviewId)
+        print(productReviewRate)
+        print(productQuestionId)
+        print(productQuestionRate)
+        print(companyreviewId)
+        print(companyreviewRate)
+        print(companyQuestionId)
+        print(companyQuestionRate) """          
+        productReviewId = productReviewId[:productReviewAmount]
+        productReviewRate = productReviewRate[:productReviewAmount]
+
+        productQuestionId=productQuestionId[:productQuestionAmount]
+        productQuestionRate=productQuestionRate[:productQuestionAmount]
+
+        companyreviewId=companyreviewId[:companyReviewAmount]
+        companyreviewRate=companyreviewRate[:companyReviewAmount]
+
+        companyQuestionId=companyQuestionId[:companyQuestionAmount]
+        companyQuestionRate=companyQuestionRate[:companyQuestionAmount]
         # Bound ratings
         if bound_ratings:
-            items_recommend[self.columns[3]] = items_recommend[self.columns[3]].clip(
+            items_recommend["rating_pred"] = items_recommend["rating_pred"].clip(
                 lower=self.min_rating, upper=self.max_rating
             )
 
         if not include_user:
-            items_recommend.drop([self.columns[0]], axis="columns", inplace=True)
+            items_recommend.drop(["user_id"], axis="columns", inplace=True)
+       
+        return productReviewId, productReviewRate, productQuestionId, productQuestionRate,\
+                companyreviewId, companyreviewRate, companyQuestionId, companyQuestionRate
 
-        return items_recommend
-
+ 

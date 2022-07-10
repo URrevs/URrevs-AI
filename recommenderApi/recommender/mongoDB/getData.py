@@ -323,7 +323,7 @@ class MongoConnection:
         visits = ques_visits_col.find({'updatedAt': {'$gte': date}}, {'_id': 1})
         visits_lst: list = []
         for visit in visits:
-            visits_lst.extend(sql.get_owned_mobiles_questions(str(visit['_id'])))
+            visits_lst.extend(sql.get_owned_mobiles_questions_mongo(str(visit['_id'])))
         return visits_lst
 
     def get_product_questions_hates_mongo(self, date: dt):
@@ -379,16 +379,6 @@ class MongoConnection:
         except Exception as e:
             print('similar phones: ', e)
             print('failed to add similar phones')
-        print('get all prevs mongo')
-        reviews = self.get_product_reviews_mongo(date)
-        for review in reviews:
-            sqlite.create_new_Preview_ifNotExist(review)
-        print('add them to sqlite db')
-        print('get all crevs mongo')
-        reviews = self.get_company_reviews_mongo(date)
-        for review in reviews:
-            sqlite.create_new_Creview_ifNotExist(review)
-        print('add them to sqlite db')
         print('get all pques mongo')
         product_questions = self.get_product_questions_mongo(date)
         for question in product_questions:
@@ -414,6 +404,16 @@ class MongoConnection:
         questions = self.get_company_questions_removed_acceptedanswer_mongo(date)
         for question in questions:
             sqlite.set_Cques_accepted_answer(question['question'], accepted_answer=False)
+        print('get all prevs mongo')
+        reviews = self.get_product_reviews_mongo(date)
+        for review in reviews:
+            sqlite.create_new_Preview_ifNotExist(review)
+        print('add them to sqlite db')
+        print('get all crevs mongo')
+        reviews = self.get_company_reviews_mongo(date)
+        for review in reviews:
+            sqlite.create_new_Creview_ifNotExist(review)
+        print('add them to sqlite db')
         print('finish updating all pques accepted answer')
         print('finish adding all users, companies, mobiles, reviews and questions')
         return product_questions

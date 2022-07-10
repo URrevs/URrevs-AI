@@ -2,6 +2,7 @@ from bson import ObjectId
 from sklearn.utils import shuffle
 from recommender.collobarative.recommend import MatrixFactorization
 from recommender.collobarative.seenTable import SeenTable
+from recommender.collobarative.questions import *
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
 from recommender.collobarative.reviewTracker import Trackers
 from recommender.sqliteDB.data import SQLite_Database
@@ -22,13 +23,16 @@ def get_most_liked_reviews(userId: str, item_type = 'product'):
     # return Trackers(loadfile=True).getMostLikedReview(userId, item_type)
 
 def get_max_n_liked_mobiles(userId: str, n: int):
-    return Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).getMaxNLikedMobile(userId, n)
+    try: return load(open('recommender/collobarative/MF_mobiles.pkl', 'rb'))[userId]['phones']
+    except:
+        return Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).getMaxNLikedMobile(userId, n)
 
 def get_max_n_liked_companies(mobiles: list):
     companies = []
     sql = SQLite_Database()
     for mobile in mobiles:
-        companies.append(sql.get_company_from_mobile(mobile))
+        try: companies.append(sql.get_company_from_mobile(mobile))
+        except: pass
     return companies
 
 def split(recs: list):
@@ -43,144 +47,305 @@ def valid_id(id: str):
     try: ObjectId(id); return id
     except: return id[1:]
 
+def remove_hates(lst: list, spaces: list, identifier: str, hates: list):
+    length = len(lst)
+    out = []; out_sp = []
+    for i in range(length):
+        if f'{identifier}{lst[i]}' not in hates:
+            out.append(f'{identifier}{lst[i]}')
+            out_sp.append(spaces[i])
+    return out, out_sp
+
+def generate_MF_items_file():
+    MF_items = {}
+    MF_Model = MatrixFactorization()
+    users = Trackers(loadfile=True).getAllUsers()
+    for user in users:
+        MF_items[user] = MF_Model.recommend_items(user)
+    dump(MF_items, open('recommender/collobarative/MF_items.pkl', 'wb'))
+    return MF_items
+    
+def generate_MF_mobiles_files():
+    MF_mobiles = {}
+    sql = SQLite_Database()
+    MF_Model = MatrixFactorization()
+    users = Trackers('recommender/collobarative/mobileTrackers.pkl', loadfile=True).getAllUsers()
+    for user in users:
+        phones = MF_Model.recommend_mobiles(user, n_recommendations=5)
+        companies = get_max_n_liked_companies(phones)
+        prevs = []; crevs = []; pques = []; cques = []
+        prevs.extend(sql.get_Previews_by_mobile(phones))
+        pques.extend(sql.get_Pquestions_by_mobiles(phones))
+        cques.extend(sql.get_Cquestions_by_company(companies))
+        crevs.extend(sql.get_Creviews_by_companies(companies))
+        MF_mobiles[user] = {
+            'phones': phones,
+            'companies': companies,
+            'lists': (prevs, crevs, pques, cques)
+        }
+    dump(MF_mobiles, open('recommender/collobarative/MF_mobiles.pkl', 'wb'))
+    return MF_mobiles
+
 def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
-    # first recommend questions
+    seen_table = SeenTable(loadfile=True)
+    
     productQuestions = []
     companyQuestions = []
-    if len(productQuestions) < PQ: PR += (PQ-len(productQuestions))
-    if len(companyQuestions) < CQ: CR += (CQ-len(companyQuestions))
-    # then recommend reviews
     productReviews = []
     companyReviews = []
     total = []
     total_spaces = []
-    # 3rd Model Recommend only PR
-    seen_table = SeenTable(loadfile=True)
+
+    # first rounds
     if round <= (200//ROUND_NUM_OF_REVIEWS):
+        # load MF items file
+        try: MF_items = load(open('recommender\collobarative\MF_items.pkl', 'rb'))
+        except Exception as e:
+            print(e)
+            MF_items = generate_MF_items_file()
+        # load MF mobiles file
+        try: MF_mobiles = load(open('recommender\collobarative\MF_mobiles.pkl', 'rb'))
+        except Exception as e:
+            print(e)
+            MF_mobiles = generate_MF_mobiles_files()
+        
+        print(MF_items)
+        print('MF_items', MF_items.keys())
+        print('MF_mobiles', MF_mobiles.keys())
+        if userId not in MF_items.keys():
+            # load all anonymous as it
+            round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
+            if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'): calc_anonymous_data()
+            productReviews, companyReviews, productQuestions, companyQuestions, total =\
+                    load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+        else:
+            # load user items data
+            (prevs1, pr_sp1, pques1, pq_sp1, crevs1, cr_sp1, cques1, cq_sp1) = MF_items[userId]
+            # load user mobiles items data
+            if userId not in MF_mobiles.keys(): prevs2=[]; pques2=[]; crevs2=[]; cques2=[]
+            else: (prevs2, crevs2, pques2, cques2) = MF_mobiles[userId]['lists']
+            # check if questions are calculated before
+            try: users_MF_ques = load(open('recommender/collobarative/gen_MF_ques.pkl', 'rb'))
+            except: users_MF_ques = {}
+            if userId not in users_MF_ques.keys(): 
+                pques3,pq_spcs=filterQuetions(user=userId,ques1=pques1,sort=pq_sp1,filterType=2,ques2=pques2)
+                cques3,cq_spcs=filterQuetions(user=userId,ques1=cques1,sort=cq_sp1,filterType=3,ques2=cques2)
+            # load the saved data
+            else:
+                (pques3, pq_spcs) = users_MF_ques[userId]['pques']
+                (cques3, cq_spcs) = users_MF_ques[userId]['cques']
+            
+            productQuestions = [f'2{ques}' for ques in pques3]
+            productQuestions, pq_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, productQuestions, pq_spcs, num=PQ)
+            total.extend(productQuestions); total_spaces.extend(pq_sp)
+            
+            companyQuestions = [f'3{ques}' for ques in cques3]
+            companyQuestions, cq_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, companyQuestions, cq_spcs, num=CQ)
+            total.extend(companyQuestions); total_spaces.extend(cq_sp)
+            
+            users_MF_ques[userId] = {'pques': (prest, p_sp_rest), 'cques': (crest, c_sp_rest)}
+            dump(users_MF_ques, open('recommender/collobarative/gen_MF_ques.pkl', 'wb'))
+        # print(productQuestions, companyQuestions)
+        # --------------------------------------------------------------------------------------------------
+        if len(productQuestions) < PQ: PR += (PQ-len(productQuestions)); PQ = 0
+        if len(companyQuestions) < CQ: CR += (CQ-len(companyQuestions)); CQ = 0
+    
         Preference = get_most_liked_reviews(userId)
         Creference = get_most_liked_reviews(userId, item_type='company')
-        if Preference != None or Creference != None:
-            # get most reacted mobiles
-            mobiles = get_max_n_liked_mobiles(userId, n=5)
-            # get all hates reviews for user
-            hates = Trackers(loadfile=True).getHatesReviews(userId)
+        # print(Preference, Creference)
         items_interactions_existance_check = check_interactions_existance(userId, search_in='items')
         # check existance of products interactions and items interactions
         if items_interactions_existance_check and check_interactions_existance(userId, search_in='mobiles'):
-            if Preference != None:
-                # get reviews of these mobiles
-                reviews = SQLite_Database().get_Previews_by_mobiles(mobiles)
-                if len(reviews) > 0:
-                    reviews.append(Preference)
-                    model = ReviewContentRecommender()
-                    recs, spaces = model.recommend(
-                        referenceId=Preference,
-                        recommend_type='product',
-                        n_recommendations=min([len(reviews)-1, 4+min([4, PQ])]), # 8 is calculated from 4 PR + 4 PQ but there is no PQ
-                        items=reviews
-                        )
-                    # check if review not in hates for this user
-                    recs = [f'0{review}' for review in recs if f'0{review}' not in hates]
-                    productReviews, spaces = seen_table.check_if_review_shown_before(userId, recs[1:], spaces)
-                    PR = PR - len(productReviews)
-            # -------------------------------
-            if Creference != None:
-                # get companies for these mobiles
-                companies = get_max_n_liked_companies(mobiles)
-                # get reviews for these companies
-                reviews = SQLite_Database().get_Creviews_by_companies(companies)
-                if len(reviews) > 0:
-                    reviews.append(Preference)
-                    model = ReviewContentRecommender()
-                    recs, cspaces = model.recommend(
-                        referenceId=Creference,
-                        recommend_type='company',
-                        n_recommendations=min([len(reviews)-1, 4+min([4, CQ])]), # 8 is calculated from 4 PR + 4 PQ but there is no PQ
-                        items=reviews
-                        )
-                    # check if review not in hates for this user
-                    recs = [f'1{review}' for review in recs if f'1{review}' not in hates]
-                    companyReviews, cspaces = seen_table.check_if_review_shown_before(userId, recs[1:], cspaces)
-                    CR = CR - len(companyReviews)
+            try: users_MF_mobile_revs = load(open('recommender/collobarative/gen_MF_mobile_revs.pkl', 'rb'))
+            except: users_MF_mobile_revs = {}
+
+            if userId not in users_MF_mobile_revs.keys():
+                Precs = []; pr_sp = []; Crecs = []; cr_sp = []
+                if Preference != None:
+                    # get reviews of these mobiles
+                    if len(prevs2) > 0:
+                        prevs2.append(Preference)
+                        model = ReviewContentRecommender()
+                        recs, pr_sp = model.recommend(
+                            referenceId=Preference,
+                            recommend_type='product',
+                            items=prevs2
+                            )
+                        # check if review not in hates for this user
+                        Precs = [f'0{prev}' for prev in recs]
+                # -------------------------------
+                if Creference != None:
+                    # get reviews for these companies
+                    if len(crevs2) > 0:
+                        crevs2.append(Preference)
+                        model = ReviewContentRecommender()
+                        recs, cr_sp = model.recommend(
+                            referenceId=Creference,
+                            recommend_type='company',
+                            items=crevs2
+                            )
+                        Crecs = [f'1{crev}' for crev in recs]
+            else:
+                (Precs, pr_sp) = users_MF_mobile_revs[userId]['prevs']
+                (Crecs, cr_sp) = users_MF_mobile_revs[userId]['crevs']
+
+            prevs, pr_spcs, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, Precs[1:], pr_sp, num=ROUND_NUM_OF_REVIEWS//10)
+            productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_spcs)
+            PR = PR - len(prevs)
+
+            crevs, cr_spcs, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, Crecs[1:], cr_sp, num=ROUND_NUM_OF_REVIEWS//10)
+            companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_spcs)
+            CR = CR - len(crevs)
+            
+            users_MF_mobile_revs[userId] = {'prevs': (prest, p_sp_rest), 'crevs': (crest, c_sp_rest)}
+            dump(users_MF_mobile_revs, open('recommender/collobarative/gen_MF_mobile_revs.pkl', 'wb'))
+        # print(productReviews, companyReviews)
         # ------------------------------------------------------------------------------
         # check user item interactions existance
         if items_interactions_existance_check:
             # First Model recommend PR, CR
-            items_recommender = MatrixFactorization()
-            product_recs, spaces1 = items_recommender.recommend_items(userId, n_recommendations=PR)
-            reviews, spaces1 = seen_table.check_if_review_shown_before(userId, product_recs, spaces1)
-            productReviews.extend(reviews)
-            try: spaces.extend(spaces1)
-            except: spaces = spaces1
-            PR = PR - len(reviews)
+            try: users_MF_revs = load(open('recommender/collobarative/gen_MF_revs.pkl', 'rb'))
+            except: users_MF_revs = {}
+            
+            if userId in users_MF_revs.keys():
+                (prevs1, pr_sp1) = users_MF_revs[userId]['prevs']
+                (crevs1, cr_sp1) = users_MF_revs[userId]['crevs']
 
-            company_recs, spaces2 = items_recommender.recommend_items(userId, n_recommendations=CR, item_type=1)
-            reviews, spaces2 = seen_table.check_if_review_shown_before(userId, company_recs, spaces2)
-            companyReviews.extend(reviews)
-            try: cspaces.extend(spaces2)
-            except: cspaces = spaces2
-            CR = CR - len(companyReviews)
+            prevs4, pr_sp4, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, prevs1, pr_sp1, num=ROUND_NUM_OF_REVIEWS//10)
+            productReviews.extend(prevs4); total.extend(prevs4); total_spaces.extend(pr_sp4)
+            PR = PR - len(prevs4)
+            
+            crevs4, cr_sp4, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, crevs1, cr_sp1, num=ROUND_NUM_OF_REVIEWS//10)
+            companyReviews.extend(crevs4); total.extend(crevs4); total_spaces.extend(cr_sp4)
+            CR = CR - len(crevs4)
+            
+            users_MF_revs[userId] = {'prevs': (prest, p_sp_rest), 'crevs': (crest, c_sp_rest)}
+            dump(users_MF_revs, open('recommender/collobarative/gen_MF_revs.pkl', 'wb'))
+            # print(productReviews, companyReviews)
             # --------------------------------------------------
-            #  Second Model recommend PR, CR
-            if Preference != None:
-                model = ReviewContentRecommender()
-                product_recs, spaces3 = model.recommend(referenceId=Preference, n_recommendations=2*PR, known_items=total)
-                product_recs = [f'0{review}' for review in product_recs if f'0{review}' not in hates]
-                reviews, spaces3 = seen_table.check_if_review_shown_before(userId, product_recs, spaces3)
-                productReviews.extend(reviews[:PR]); spaces.extend(spaces3[:PR])
-                total.extend(productReviews); total_spaces.extend(spaces)
-                PR = PR - len(reviews[:PR])
+            try: users_CR_revs = load(open('recommender/collobarative/gen_CR_revs.pkl', 'rb'))
+            except: users_CR_revs = {}
 
-            if Creference != None:
-                company_recs, spaces4 = model.recommend(referenceId=Creference, n_recommendations=2*CR,
-                    known_items=total, recommend_type='company')
-                company_recs = [f'1{review}' for review in company_recs if f'1{review}' not in hates]
-                reviews, spaces4 = seen_table.check_if_review_shown_before(userId, company_recs, spaces4)
-                companyReviews.extend(reviews[:CR]); cspaces.extend(spaces4[:CR])
-                total.extend(companyReviews); total_spaces.extend(cspaces)
-                CR = CR - len(reviews[:CR])
+            if userId not in users_CR_revs.keys():
+                product_recs = []; pr_sp = []; company_recs = []; cr_sp = []
+                hates = Trackers(loadfile=True).getHatesReviews(userId)
+                print(Preference)
+                #  Second Model recommend PR, CR
+                if Preference != None:
+                    model = ReviewContentRecommender()
+                    Precs, pr_sp = model.recommend(
+                        referenceId=Preference,
+                        n_recommendations=150,
+                        known_items=(productReviews+hates)
+                        )
+                    product_recs = [f'0{review}' for review in Precs]
+
+                if Creference != None:
+                    model = ReviewContentRecommender()
+                    Crecs, cr_sp = model.recommend(
+                        referenceId=Creference, 
+                        n_recommendations=150,
+                        known_items=(companyReviews+hates), 
+                        recommend_type='company'
+                        )
+                    company_recs = [f'1{review}' for review in Crecs]
+            
+            else:
+                (product_recs, pr_sp) = users_CR_revs[userId]['prevs']
+                (company_recs, cr_sp) = users_CR_revs[userId]['crevs']
+
+            prevs, pr_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, product_recs, pr_sp, num=PR)
+            productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_sp)
+            PR = PR - len(prevs)
+
+            crevs, cr_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, company_recs, cr_sp, num=CR)
+            companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_sp)
+            CR = CR - len(crevs)
+            
+            users_CR_revs[userId] = {'prevs': (prest, p_sp_rest), 'crevs': (crest, c_sp_rest)}
+            dump(users_CR_revs, open('recommender/collobarative/gen_CR_revs.pkl', 'wb'))
+            
             # --------------------------------------------------
             # sorting list
             total = [x for x, _ in sorted(zip(total, total_spaces), key=lambda pair: pair[1])]
         # --------------------------------------------------
         # Here we add more recommendations without checking if they are already shown as final solution
-        if PR > 0 or CR > 0:
-            round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
-            start = int((round - 1) * ROUND_NUM_OF_REVIEWS)
-            end = int(round * ROUND_NUM_OF_REVIEWS)
-            if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'):
-                calc_anonymous_data()
-            reviews = load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[start: end]
-            for review in reviews:
-                if review[1:] not in total:
-                    if PR > 0 and review[0] == '0':
-                        productReviews.append(review[1:])
-                        total.append(review[1:])
-                        seen_table.addToSeenTable(userId, [review])
-                        PR -= 1
-                    if CR > 0 and review[0] == '1':
-                        companyReviews.append(review[1:])
-                        total.append(review[1:])
-                        seen_table.addToSeenTable(userId, [review])
-                        CR -= 1
-                    if PR == 0 and CR == 0: break
-            if PR > 0 or CR > 0:
-                for review in reviews:
-                    if review[1:] not in total:
-                        total.append(review[1:])
-                        seen_table.addToSeenTable(userId, [review])
-                        if review[0] == '0':
-                            productReviews.append(review[1:]); PR -= 1; CR -= 1
-                        if review[0] == '1':
-                            companyReviews.append(review[1:]); CR -= 1; PR -= 1
+            if PR > 0 or CR > 0 or PQ > 0 or CQ > 0:
+                round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
+                if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'):
+                    calc_anonymous_data()
+                prevs, crevs, pques, cques, _ = load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+                if PR > 0:
+                    for prev in prevs:
+                        if seen_table.check_item_not_exist(userId, f'0{prev}'):
+                            productReviews.append(prev)
+                            total.append(prev)
+                            seen_table.addToSeenTable(userId, [f'0{prev}'])
+                            PR -= 1
+                if CR > 0:
+                    for crev in crevs:
+                        if seen_table.check_item_not_exist(userId, f'1{crev}'):
+                            companyReviews.append(crev)
+                            total.append(crev)
+                            seen_table.addToSeenTable(userId, [f'1{crev}'])
+                            CR -= 1
+                if PQ > 0:
+                    for pque in pques:
+                        if seen_table.check_item_not_exist(userId, f'2{pque}'):
+                            productQuestions.append(pque)
+                            total.append(pque)
+                            seen_table.addToSeenTable(userId, [f'2{pque}'])
+                            PQ -= 1
+                if CQ > 0:
+                    for cque in cques:
+                        if seen_table.check_item_not_exist(userId, f'3{cque}'):
+                            companyQuestions.append(cque)
+                            total.append(cque)
+                            seen_table.addToSeenTable(userId, [f'3{cque}'])
+                            CQ -= 1
+                # Add items from seentable as the last choice
+                if PR > 0 or CR > 0:
+                    for i in range(len(prevs+crevs)):
+                        if i < len(prevs):
+                            if prevs[i] not in total:
+                                productReviews.append(prevs[i])
+                                total.append(prevs[i])
+                                PR -= 1
+                        else:
+                            if crevs[i-len(prevs)] not in total:
+                                companyReviews.append(crevs[i-len(prevs)])
+                                total.append(crevs[i-len(prevs)])
+                                CR -= 1
                         if PR <= 0 and CR <= 0: break
-        # save user data to not calculate it again
+                if PR > 0: PQ = PR; PR = 0
+                if CR > 0: CQ = CR; CR = 0
+                if PQ > 0 or CQ > 0:
+                    for i in range(len(pques+cques)):
+                        if i < len(pques):
+                            if pques[i] not in total:
+                                # print(pques[i])
+                                productQuestions.append(pques[i])
+                                total.append(pques[i])
+                        else:
+                            if cques[i-len(pques)] not in total:
+                                companyQuestions.append(cques[i-len(pques)])
+                                total.append(cques[i-len(pques)])
+                        PQ -= 1; CQ -= 1
+                        if PQ <= 0 and CQ <= 0: break
+                # else:
+            # load all anonymous as it
+        #     round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
+        #     if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'):
+        #         calc_anonymous_data()
+        #     productReviews, companyReviews, productQuestions, companyQuestions, total = load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+        # # save user data to not calculate it again
         try: users = load(open('recommender/users.pkl', 'rb'))
         except: users = {}
         if userId not in users.keys():
             users[userId] = {}
-        users[userId][round-1] = [total, productReviews, companyReviews, productQuestions, companyQuestions]
-        dump(users, open('recommender/users.pkl', 'wb'))
+        if (round-1) not in users[userId].keys():
+            users[userId][round-1] = [total, productReviews, companyReviews, productQuestions, companyQuestions]
+            dump(users, open('recommender/users.pkl', 'wb'))
     else:
         round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
         users = load(open('recommender/users.pkl', 'rb'))

@@ -55,6 +55,22 @@ class SQLite_Database:
         except Exception as e:
             print(e)
             return None
+
+    def get_user_products(self, user):
+        user = User.objects.get(id=user)
+        lst = []
+        if user != None:
+            products = ProductOwner.objects.filter(user=user)
+            lst = [product.product.id for product in products]
+        return lst
+    
+    def get_user_companies(self, user):
+        user = User.objects.get(id=user)
+        lst = []
+        if user != None:
+            companies = CompanyOwner.objects.filter(user=user)
+            lst = [company.company.id for company in companies]
+        return lst
     
     def create_company(self, id: str = '', name: str = ''):
         try:
@@ -134,15 +150,22 @@ class SQLite_Database:
 
     def create_new_Preview_ifNotExist(self, review):
         try:
-            id, user, phone, rate = str(review['_id']), str(review['user']), str(review['phone']), review['generalRating']
+            id, userId, phoneId, rate = str(review['_id']), str(review['user']), str(review['phone']), review['generalRating']
             rate1, rate2, rate3 = review['uiRating'], review['manQuality'], review['valFMon']
             rate4, rate5, rate6 = review['camera'], review['callQuality'], review['batteryRating']
             date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
-            user = User.objects.get(id=user)
-            phone = Mobile.objects.get(id=phone)
+            user = User.objects.get(id=userId)
+            phone = Mobile.objects.get(id=phoneId)
             review = PReview.objects.get_or_create(id=id, userId=user, productId=phone, rating=rate, time=date, 
                 pros=pros, cons=cons, rating1=rate1, rating2=rate2, rating3=rate3, rating4=rate4, rating5=rate5,
                 rating6=rate6)
+            try:
+                ProductOwner.objects.get_or_create(user=user, product=phone)
+                CompanyOwner.objects.get_or_create(user=user, company=phone.company)
+            except Exception as e:
+                print('create owner raws: ', e)
+                return None
+            self.update_Pquestion_owner(user=userId, phone=phoneId)
             return review
         except Exception as e:
             print(e)
@@ -172,6 +195,17 @@ class SQLite_Database:
         for mobile_revs in revs:
             for rev in mobile_revs:
                 revs_lst.append(rev.id)
+        return revs_lst
+    
+    def get_Previews_by_mobile(self, mobilesIds = []):
+        revs = []
+        for mobile in mobilesIds:
+            try: mobile = Mobile.objects.get(id=mobile)
+            except: pass
+            revs.extend(PReview.objects.filter(productId=mobile))
+        revs_lst = []
+        for rev in revs:
+            revs_lst.append(rev.id)
         return revs_lst
 
     def get_all_mobiles_have_reviews(self):
@@ -244,9 +278,9 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = PReview.objects.get(id=review)
-            like: Prev_Most_Liked = Prev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Prev_Most_Liked']
-            like.save()
-            return like
+            Prev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)
+            # like.save()
+            # return like
         except Exception as e:
             print(e)
             return None
@@ -255,7 +289,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             like: Prev_Most_Liked = Prev_Most_Liked.objects.get(userId=user)
-            return like.reviewId
+            return like.reviewId.id
         except Exception as e:
             # print(e)
             return None
@@ -273,13 +307,14 @@ class SQLite_Database:
     
     def create_new_Creview_ifNotExist(self, review):
         try:
-            id, user, company, rate = str(review['_id']), str(review['user']), str(review['company']), review['generalRating']
+            id, userId, companyId, rate = str(review['_id']), str(review['user']), str(review['company']), review['generalRating']
             date, pros, cons = dateAsNumber(review['createdAt']), review['pros'], review['cons']
-            user = User.objects.get(id=user)
-            company = Company.objects.get(id=company)
+            user = User.objects.get(id=userId)
+            company = Company.objects.get(id=companyId)
             review = CReview.objects.get_or_create(id=id, userId=user, companyId=company, rating=rate, time=date, 
                 pros=pros, cons=cons)
-            return 
+            self.update_Cquestion_owner(user=userId, company=companyId)
+            return
         except Exception as e:
             print(e)
             return None
@@ -347,9 +382,9 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             review = CReview.objects.get(id=review)
-            like: Crev_Most_Liked = Crev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)['Crev_Most_Liked']
-            like.save()
-            return like
+            Crev_Most_Liked.objects.update_or_create(userId=user, reviewId=review)
+            # like.save()
+            # return like
         except Exception as e:
             print(e)
             return None
@@ -358,7 +393,7 @@ class SQLite_Database:
         try:
             user = User.objects.get(id=user)
             like: Crev_Most_Liked = Crev_Most_Liked.objects.get(userId=user)
-            return like.reviewId
+            return like.reviewId.id
         except Exception as e:
             # print(e)
             return None    
@@ -412,6 +447,20 @@ class SQLite_Database:
         except Exception as e:
             print(e)
             return None
+    
+    def update_Pquestion_owner(self, user, phone):
+        try:
+            pques: PQuestion = PQuestion.objects.filter(userId=user, productId=phone)
+            if pques != None:
+                try:
+                    pques.product_owner = True
+                    pques.save()
+                except:
+                    for pq in pques:
+                        pq.product_owner = True
+                        pq.save()
+        except Exception as e:
+            return None
 
     def get_Pquestion(self, id: str = ''):
         if id == '':
@@ -427,11 +476,24 @@ class SQLite_Database:
         try:
             ques_lst = []
             for product in products:
-                ques_lst.extend(PQuestion.objects.filter(productId=product.product))
+                for ques in PQuestion.objects.filter(productId=product.product):
+                    ques_lst.append(ques.id)
             return ques_lst
         except Exception as e:
             print(e)
             return None
+    
+    def get_Pquestions_by_mobiles(self, mobiles: list):
+        try:
+            ques_lst = []
+            for mobile in mobiles:
+                mobile = Product.objects.get(id=mobile)
+                for ques in PQuestion.objects.filter(productId=mobile):
+                    ques_lst.append(ques.id)
+            return ques_lst
+        except Exception as e:
+            print(e)
+            return []
 
     def set_Pques_accepted_answer(self, question: str, accepted_answer: bool = True):
         try:
@@ -453,16 +515,25 @@ class SQLite_Database:
         # return questions
 
     # This function is only used for tracker (about my page visits)
-    def get_owned_mobiles_questions(self, userId):
+    def get_owned_mobiles_questions_mongo(self, userId):
         user = User.objects.get(id=userId)
         products = ProductOwner.objects.filter(user=user)
         questions = []
         for question in self.get_Pquestions_by_products(products=products):
             questions.append({
                 'id': userId, 
-                'question': f'2{question.id}'
+                'question': f'2{question}'
                 })
         return questions
+
+    def get_owned_mobiles_mongo(self, userId):
+        user = User.objects.get(id=userId)
+        products = ProductOwner.objects.filter(user=user)
+        questions = []
+        for question in self.get_Pquestions_by_products(products=products):
+            questions.append(question.id)
+        return questions
+
 
     def get_all_mobiles_have_questions(self):
         mobiles = PQuestion.objects.values_list('productId', flat=True).distinct()
@@ -546,6 +617,53 @@ class SQLite_Database:
         except Exception as e:
             print(e)
             return None
+
+    def update_Cquestion_owner(self, user, company):
+        try:
+            user = User.objects.get(id=user)
+            company = Company.objects.get(id=company)
+            cques: CQuestion = CQuestion.objects.filter(userId=user, companyId=company)
+            if cques != None:
+                try:
+                    cques.company_owner = True
+                    cques.save()
+                except:
+                    for cq in cques:
+                        cq.company_owner = True
+                        cq.save()
+        except Exception as e:
+            return None
+
+    def get_owned_companies_mongo(self, userId):
+        user = User.objects.get(id=userId)
+        companies = CompanyOwner.objects.filter(user=user)
+        questions = []
+        for question in self.get_Cquestions_by_companies(companies=companies):
+            questions.append(question.id)
+        return questions
+
+    def get_Cquestions_by_companies(self, companies: list):
+        try:
+            ques_lst = []
+            for company in companies:
+                for ques in CQuestion.objects.filter(companyId=company.company):
+                    ques_lst.append(ques.id)
+            return ques_lst
+        except Exception as e:
+            print(e)
+            return None
+
+    def get_Cquestions_by_company(self, companies: list):
+        # try:
+            ques_lst = []
+            for company in companies:
+                for ques in CQuestion.objects.filter(companyId=company):
+                    ques_lst.append(ques.id)
+            return ques_lst
+        # except Exception as e:
+        #     print(e)
+        #     return None
+
 
     def get_Cquestion(self, id: str = ''):
         if id == '':

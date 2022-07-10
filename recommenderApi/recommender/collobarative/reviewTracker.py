@@ -46,17 +46,22 @@ class Trackers:
     def removeIndentifierFromID(self, id):
         return str(id[1:])
 
+    def getAllUsers(self):
+        return self.df['user_id'].unique()
+
     def getRate(self, userId, itemId, col='item_id'):
         return self.df.loc[(self.df['user_id'] == userId) & (self.df[col] == itemId), 'rating']
 
-    def getMostLikedReview(self, userId, item_type):
+    def getMostLikedReview(self, userId, item_type = 'product'):
         if item_type == 'product': item_type = '0'
         else: item_type = '1'
         return self.df.iloc[self.df.loc[(self.df['user_id'] == userId) & (self.df['item_id'].str.startswith(item_type)), 'rating'].idxmax()]['item_id']
 
     def getHatesReviews(self, userId):
-        return self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] == REVIEW_DONT_LIKE), 'item_id'].values
-
+        lst = self.df.loc[(self.df['user_id'] == userId) & (self.df['rating'] == REVIEW_DONT_LIKE), 'item_id'].values
+        for item in lst:
+            if len(item) == 25: item = item[1:]
+        return lst
     def getMaxNLikedMobile(self, userId, n):
         # model = MatrixFactorization(columns=['user_id', 'product_id', 'rating', 'rating_pred'])
         # mobiles = set(model.recommend_mobiles(userId, n_recommendations=n, pred=False).flatten())
@@ -295,11 +300,12 @@ class Trackers:
     def fill_most_liked_items(self):
         sql = SQLite_Database()
         for user in self.usersDic.keys():
+            # print(user, self.getMostLikedReview(user)[1:])
             # get the most liked items for the user
             try: sql.update_add_Most_liked_Prev(user, self.getMostLikedReview(user)[1:])
-            except:
-                try: sql.update_add_Most_liked_Crev(user, self.getMostLikedReview(user, itemType='company')[1:])
-                except: pass
+            except: pass
+            try: sql.update_add_Most_liked_Crev(user, self.getMostLikedReview(user, item_type='company')[1:])
+            except: pass
         return None
 
     def saveTrackers(self):
