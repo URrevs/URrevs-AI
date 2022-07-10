@@ -87,8 +87,13 @@ class ReviewContentRecommender:
             self.preprocessing(recommend_type=recommend_type, path=path)
         data: pd.DataFrame = load(open(path, 'rb'))
         if len(items) != 0:
+            # items2 = pd.DataFrame(index=items)
+            # print(data[data.index.isin(items2.index)])
             data = data[data.index.isin(items)]
-            data.index = items
+            # print(data.shape, len(items))
+            # print(data)
+            # data.index = items
+            # print(data)
         if len(known_items) != 0:
             data = data[~data.index.isin(known_items)]
         if n_recommendations == -1: n_recommendations = data.shape[0]-1 # len(items)-1

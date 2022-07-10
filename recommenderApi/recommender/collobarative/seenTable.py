@@ -58,7 +58,8 @@ class SeenTable:
                         spcs.append(spaces[i])
                         self.addToSeenTable(userid, [reviews[i]])
                 else: 
-                    revs2.append(reviews[i][1:])
+                    if len(reviews[i]) == 25: revs2.append(reviews[i][1:])
+                    elif len(reviews[i]) == 24: revs2.append(reviews[i])
                     spcs2.append(spaces[i])
             else:
                 for i in range(len(reviews)):
