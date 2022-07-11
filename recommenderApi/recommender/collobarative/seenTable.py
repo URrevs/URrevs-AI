@@ -41,12 +41,14 @@ class SeenTable:
     def check_item_not_exist(self, userid, itemId):
         return self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == itemId)].empty
 
-    def check_if_review_shown_before(self, userid, reviews, spaces, num='', known=[]):
+    def check_if_review_shown_before(self, userid, reviews, spaces=[], num='', known=[]):
         """
         reviews is a list of reviews
         """
-        revs = []; spcs = []
-        revs2 = []; spcs2 = []
+        revs = []; revs2 = []
+        check = True
+        if len(spaces) == 0: check = False
+        if check: spcs = []; spcs2 = []        
         if num == '': num = len(reviews)
         counter = 0
         if not self.df.empty:
@@ -59,12 +61,12 @@ class SeenTable:
                     if counter < num:
                         if self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == reviews[i])].empty:
                             revs.append(rev)
-                            spcs.append(spaces[i])
+                            if check: spcs.append(spaces[i])
                             self.addToSeenTable(userid, [reviews[i]])
                             counter += 1
                     else:
                         revs2.append(rev)
-                        spcs2.append(spaces[i])
+                        if check: spcs2.append(spaces[i])
         else:
             for i in range(len(reviews)):
                 length = len(reviews[i])
@@ -74,12 +76,13 @@ class SeenTable:
                 if rev not in known:
                     if counter < num:
                         revs.append(rev)
-                        spcs.append(spaces[i])
+                        if check: spcs.append(spaces[i])
                         self.addToSeenTable(userid, [reviews[i]])
                         counter += 1
                     else: 
                         revs2.append(rev)
-                        spcs2.append(spaces[i])
+                        if check: spcs2.append(spaces[i])
+        if not check: return revs
         if num == '': return revs, spcs
         else: return revs, spcs, revs2, spcs2
 

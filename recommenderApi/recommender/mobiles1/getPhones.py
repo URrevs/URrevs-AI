@@ -142,9 +142,9 @@ class Similar_Phones:
             external = self.constraints
         for spec in ['price', 'releaseDate', 'company', 'dimensions', 'batteryCapacity', 'weight',
                 'hasFastCharging', 'screenSize', 'screen2bodyRatio', 'screenResolution', 'usbVersion',
-                'resolutionDensity', 'mainCam', 'hasLoudspeaker', 'hasStereo', 'has3p5mm', 'hasNfc', 
-                'hasGyro', 'hasProximity', 'bluetoothVersion']:
-                # ,'os','intMem','selfieCam','usbType','network','screenType','usbVersion','cpu','gpu']:
+                'resolutionDensity', 'hasLoudspeaker', 'hasStereo', 'has3p5mm', 'hasNfc', 'hasGyro', 
+                'hasProximity', 'bluetoothVersion']:
+            #,'mainCam','os','intMem','selfieCam','usbType','network','screenType','usbVersion','cpu','gpu']:
             # --------------------------------------------------------------------------------------------
             # NUMERIC DATA
             if spec == 'price' or spec == 'batteryCapacity' or spec == 'weight' or spec == 'screenSize'\

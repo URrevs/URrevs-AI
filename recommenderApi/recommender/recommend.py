@@ -118,6 +118,10 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'): calc_anonymous_data()
             productReviews, companyReviews, productQuestions, companyQuestions, total =\
                     load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+            seen_table.check_if_review_shown_before(userId, [f'0{rev}' for rev in productReviews])
+            seen_table.check_if_review_shown_before(userId, [f'1{rev}' for rev in companyReviews])
+            seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
+            seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
         else:
             # load user items data
             (prevs1, pr_sp1, pques1, pq_sp1, crevs1, cr_sp1, cques1, cq_sp1) = MF_items[userId]

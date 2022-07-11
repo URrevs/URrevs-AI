@@ -63,7 +63,10 @@ def filterQuetions(user:str, ques1:list, sort:list, ques2:list, filterType:int=2
         if ques != None:
             for i in range(len(ques)):
                 if ques[i] not in filteredQuestions:
-                    if counter == 0 and sort[i] > -0.5:
+                    length = len(ques[i])
+                    if length == 25: ques[i] = ques[i][1:]
+                    if length == 23: ques[i] = f'6{ques[i][1:]}'
+                    if (counter == 0 and sort[i] > -0.5) or (counter == 1):
                         if(allQuestions[ques[i]]['question_item'] in userItems):
                             if(allQuestions[ques[i]]['owner_has_item'] == 1):
                                 filteredQuestions.append(ques[i])
