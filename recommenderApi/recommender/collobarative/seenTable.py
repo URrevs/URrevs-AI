@@ -41,13 +41,13 @@ class SeenTable:
     def check_item_not_exist(self, userid, itemId):
         return self.df[(self.df['user_id'] == userid) & (self.df['item_id'] == itemId)].empty
 
-    def check_if_review_shown_before(self, userid, reviews, spaces=[], num='', known=[]):
+    def check_if_review_shown_before(self, userid, reviews, spaces='', num='', known=[]):
         """
         reviews is a list of reviews
         """
         revs = []; revs2 = []
         check = True
-        if len(spaces) == 0: check = False
+        if spaces == '': check = False
         if check: spcs = []; spcs2 = []        
         if num == '': num = len(reviews)
         counter = 0
@@ -79,7 +79,7 @@ class SeenTable:
                         if check: spcs.append(spaces[i])
                         self.addToSeenTable(userid, [reviews[i]])
                         counter += 1
-                    else: 
+                    else:
                         revs2.append(rev)
                         if check: spcs2.append(spaces[i])
         if not check: return revs
