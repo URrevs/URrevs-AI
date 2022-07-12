@@ -62,7 +62,7 @@ def filterQuetions(user:str, ques1:list, sort:list, ques2:list, filterType:int=2
         filteredQuestions = []; filteredRate = []
         if ques != None:
             for i in range(len(ques)):
-                if ques[i] not in filteredQuestions:
+                if ques[i] not in filterQuestions:
                     length = len(ques[i])
                     if length == 25: ques[i] = ques[i][1:]
                     if length == 23: ques[i] = f'6{ques[i][1:]}'
