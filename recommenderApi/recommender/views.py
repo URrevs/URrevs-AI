@@ -136,7 +136,7 @@ def reset_files(request) -> JsonResponse:
             try:
                 # Trackers().resetTrackersFile()
                 # Trackers('recommender/collobarative/mobileTrackers.pkl').resetTrackersFile(col='product_id')
-                # SeenTable().resetSeenTable()
+                SeenTable().resetSeenTable()
                 response = {
                     'message': 'All files reseted'
                 } 

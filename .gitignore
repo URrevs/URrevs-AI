@@ -191,3 +191,14 @@ recommenderApi/recommender/gamification/tfidf1.pkl
 recommenderApi/recommender/mobiles1/mobiles_table_mod.csv
 recommenderApi/recommenderApi/env.txt
 recommenderApi/recommender/mobiles1/cols.csv
+
+
+
+recommenderApi/recommender/collobarative/MF_items.pkl
+recommenderApi/recommender/collobarative/MF_mobiles.pkl
+recommenderApi/recommender/collobarative/cques.pkl
+recommenderApi/recommender/collobarative/gen_CR_revs.pkl
+recommenderApi/recommender/collobarative/gen_MF_mobile_revs.pkl
+recommenderApi/recommender/collobarative/gen_MF_ques.pkl
+recommenderApi/recommender/collobarative/gen_MF_revs.pkl
+recommenderApi/recommender/collobarative/pques.pkl
