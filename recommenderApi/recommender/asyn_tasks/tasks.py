@@ -9,7 +9,6 @@ def start_async(date, first):
     print(dt.fromisoformat(date))
     print('start async task')
     train_and_update(dt.fromisoformat(date), first=first)
-    print('end async task')
     try:
         headersList = {
             "Accept": "*/*",
@@ -20,6 +19,7 @@ def start_async(date, first):
         print('request sent and response: ', response.text)
     except Exception as e: 
         print(e)
+    print('end async task')
     return
 
 @shared_task
