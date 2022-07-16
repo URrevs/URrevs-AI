@@ -114,9 +114,9 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         # # load MF mobiles file
         try: 
             MF_mobiles = load(open('recommender/collobarative/MF_mobiles.pkl', 'rb'))
-            print('try')
+            # print('try')
         except Exception as e:
-            print('except', e)
+            # print(e)
             MF_mobiles = generate_MF_mobiles_files()
         # t2 = time.time()
         # print('file2: ', t2-t1)
