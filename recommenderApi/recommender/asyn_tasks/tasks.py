@@ -1,19 +1,8 @@
-from time import sleep
-from celery import task, shared_task
-from recommender.collobarative.train import train_and_update
+from celery import shared_task
 from recommender.mongoDB.getData import MongoConnection
-from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.imports import MongoClient, certifi, dt, ObjectId, dump, load, subprocess
-from recommenderApi.settings import MONGODB_LINK, MONGODB_NAME, ROUND_NUM_OF_REVIEWS
-from recommender.sqliteDB.data import SQLite_Database
-
-# @shared_task
-# def send_emails(user = 10):
-#     print(f'Sending emails... to {user}')
-#     sleep(10)
-#     print('Emails sent')
-#     print('end async task')
-#     return
+from recommender.collobarative.train import train_and_update
+from recommenderApi.imports import dt, requests
+from recommenderApi.settings import STOP_TRAINING, API_KEY_SECRET
 
 @shared_task
 def start_async(date, first):
@@ -22,11 +11,15 @@ def start_async(date, first):
     train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
     try:
-        subprocess.call(["sudo systemctl stop recommenderApiCelery.service"], shell=True)
-        print('Stopping celery succeeded')
-        subprocess.call(["sudo /etc/init.d/redis-server stop"], shell=True)
-        print('Stopping redis succeeded')
-    except Exception as e: print('Failed to stop training services', e)
+        headersList = {
+            "Accept": "*/*",
+            "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+            'x-api-key': API_KEY_SECRET,
+        }
+        response = requests.request("GET", STOP_TRAINING, data="",  headers=headersList)
+        print('request sent and response: ', response.text)
+    except Exception as e: 
+        print(e)
     return
 
 @shared_task

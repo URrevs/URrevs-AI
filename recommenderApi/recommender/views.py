@@ -210,6 +210,41 @@ def start_training(request) -> JsonResponse:
         }
         return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
 #-----------------------------------------------------------------------------------------------------
+def stop_training(request) -> JsonResponse:
+    '''
+    train the recommender system
+    '''
+    if request.method == 'GET':
+        if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
+            try:
+                subprocess.call(["sudo systemctl stop recommenderApiCelery.service"], shell=True)
+                print('Stopping celery succeeded')
+                subprocess.call(["sudo /etc/init.d/redis-server stop"], shell=True)
+                print('Stopping redis succeeded')
+                response = {
+                    'message': 'Training stoped'
+                }
+                return JsonResponse(response, status=status.HTTP_200_OK)
+            except Exception as e:
+                print('Failed to stop training services', e)
+                error = {
+                    'success': False,
+                    'status': 'process failed',
+                }
+                return JsonResponse(error, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            error = {
+                'success': False,
+                'status': 'invalid API Key'
+            }
+            return JsonResponse(error, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        error = {
+            'success': False,
+            'status': 'process failed'
+        }
+        return JsonResponse(error, status=status.HTTP_400_BAD_REQUEST)
+#-----------------------------------------------------------------------------------------------------
 def get_recommendations(request, userId: str) -> JsonResponse:
     '''
         Get the reviews of a user

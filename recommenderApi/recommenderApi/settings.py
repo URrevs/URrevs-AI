@@ -30,8 +30,10 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 MONGODB_LINK = config('MONGODB_LINK', default='')
 MONGODB_UPDATE_TRAINING_TIME = config('MONGODB_UPDATE_TRAINING_TIME', default='')
 MONGODB_NAME = config('MONGODB_NAME', default='')
+STOP_TRAINING = config('STOPPING_TRAINING_SERVICES_LINK', default='')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', f'{config("API_HOST", default="")}']
+API_HOST = config("API_HOST", default="")
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', API_HOST]
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
 DAILY_ITEMS_QOUTA = config('DAILY_ITEMS_QOUTA', default=200, cast=int)
