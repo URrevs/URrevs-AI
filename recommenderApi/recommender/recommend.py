@@ -108,16 +108,18 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             # print(e)
             MF_items = generate_MF_items_file()
         t2 = time.time()
-        print('1: ', t2-t1)
+
+        print('file1: ', t2-t1)
         t1 = time.time()
         # load MF mobiles file
-        try: MF_mobiles = load(open('recommender\collobarative\MF_mobiles.pkl', 'rb'))
+        try: 
+            MF_mobiles = load(open('recommender\collobarative\MF_mobiles.pkl', 'rb'))
+            print('try')
         except Exception as e:
-            # print(e)
+            print('except', e)
             MF_mobiles = generate_MF_mobiles_files()
-        
         t2 = time.time()
-        print('2: ', t2-t1)
+        print('file2: ', t2-t1)
 
         if userId not in MF_items.keys():
             # load all anonymous as it
@@ -129,12 +131,15 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             productReviews, companyReviews, productQuestions, companyQuestions, total =\
                     load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
             t2 = time.time()
-            print('3: ', t2-t1)
+            print('file3: ', t2-t1)
 
+            t1 = time.time()
             seen_table.check_if_review_shown_before(userId, [f'0{rev}' for rev in productReviews])
             seen_table.check_if_review_shown_before(userId, [f'1{rev}' for rev in companyReviews])
             seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
             seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
+            t2 = time.time()
+            print('file3: ', t2-t1)
         else:
             # if round == 1:
             #     try: return load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))[userId]
@@ -151,7 +156,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             try: users_MF_ques = load(open('recommender/collobarative/gen_MF_ques.pkl', 'rb'))
             except: users_MF_ques = {}
             t2 = time.time()
-            print('4: ', t2-t1)
+            print('file4: ', t2-t1)
             
             if userId not in users_MF_ques.keys(): 
                 pques3,pq_spcs=filterQuetions(user=userId,ques1=pques1,sort=pq_sp1,filterType=2,ques2=pques2)
@@ -192,7 +197,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             try: users_MF_mobile_revs = load(open('recommender/collobarative/gen_MF_mobile_revs.pkl', 'rb'))
             except: users_MF_mobile_revs = {}
             t2 = time.time()
-            print('5: ', t2-t1)
+            print('file5: ', t2-t1)
             
             if userId not in users_MF_mobile_revs.keys():
                 Precs = []; pr_sp = []; Crecs = []; cr_sp = []
@@ -250,7 +255,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             try: users_MF_revs = load(open('recommender/collobarative/gen_MF_revs.pkl', 'rb'))
             except: users_MF_revs = {}
             t2 = time.time()
-            print('6: ', t2-t1)
+            print('file6: ', t2-t1)
             
             if userId in users_MF_revs.keys():
                 (prevs1, pr_sp1) = users_MF_revs[userId]['prevs']
@@ -274,7 +279,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             try: users_CR_revs = load(open('recommender/collobarative/gen_CR_revs.pkl', 'rb'))
             except: users_CR_revs = {}
             t2 = time.time()
-            print('7: ', t2-t1)
+            print('file7: ', t2-t1)
             
             # print('CR_revs')
 
