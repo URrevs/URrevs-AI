@@ -203,6 +203,14 @@ class MongoConnection:
         pques = pques_col.find({'createdAt': {'$gte': date}}, projection)
         return pques
 
+    def get_product_questions_num_votes_mongo(self, id: str):
+        self.db = self.connect_to_mongo()
+        pques_col = self.db['pques']
+        pques = pques_col.find_one({'_id': ObjectId(id)}, {'_id': 0, 'upvotes': 1})
+        if pques == None: return 0
+        return pques['upvotes']
+
+
     def get_company_questions_mongo(self, date: dt):
         self.db = self.connect_to_mongo()
         cques_col = self.db['cques']
@@ -211,6 +219,13 @@ class MongoConnection:
         }
         cques = cques_col.find({'createdAt': {'$gte': date}}, projection)
         return cques
+
+    def get_company_questions_num_votes_mongo(self, id: str):
+        self.db = self.connect_to_mongo()
+        cques_col = self.db['cques']
+        cques = cques_col.find_one({'_id': ObjectId(id)}, {'_id': 0, 'upvotes': 1})
+        if cques == None: return 0
+        return cques['upvotes']
 
     def get_product_questions_upvotes_mongo(self, date: dt):
         self.db = self.connect_to_mongo()

@@ -130,8 +130,10 @@ def update_counts(sqlite: SQLite_Database, itemType, itemId: str, val: list):
     elif itemType == '1': # company reviews
         sqlite.update_Crev_interaction(itemId, val)
     elif itemType == '2': # product questions
+        val[0] = MongoConnection().get_product_questions_num_votes_mongo(id=itemId)
         sqlite.update_Pques_interaction(itemId, val)
     elif itemType == '3': # company questions
+        val[0] = MongoConnection().get_company_questions_num_votes_mongo(id=itemId)
         sqlite.update_Cques_interaction(itemId, val)
 
 def get_all_mobiles_have_reviews():

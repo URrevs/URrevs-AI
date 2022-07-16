@@ -99,7 +99,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     total_spaces = []
     # print(PR, CR, PQ, CQ)
 
-    t1 = time.time()    
+    # t1 = time.time()    
     # first rounds
     if round <= (200//ROUND_NUM_OF_REVIEWS):
         # load MF items file
@@ -107,19 +107,19 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         except Exception as e:
             # print(e)
             MF_items = generate_MF_items_file()
-        t2 = time.time()
+        # t2 = time.time()
 
-        print('file1: ', t2-t1)
-        t1 = time.time()
-        # load MF mobiles file
+        # print('file1: ', t2-t1)
+        # t1 = time.time()
+        # # load MF mobiles file
         try: 
             MF_mobiles = load(open('recommender/collobarative/MF_mobiles.pkl', 'rb'))
             print('try')
         except Exception as e:
             print('except', e)
             MF_mobiles = generate_MF_mobiles_files()
-        t2 = time.time()
-        print('file2: ', t2-t1)
+        # t2 = time.time()
+        # print('file2: ', t2-t1)
 
         if userId not in MF_items.keys():
             # load all anonymous as it
@@ -127,19 +127,19 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
             if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'): calc_anonymous_data()
             
-            t1 = time.time()
+            # t1 = time.time()
             productReviews, companyReviews, productQuestions, companyQuestions, total =\
                     load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
-            t2 = time.time()
-            print('file3: ', t2-t1)
+            # t2 = time.time()
+            # print('file3: ', t2-t1)
 
-            t1 = time.time()
+            # t1 = time.time()
             seen_table.check_if_review_shown_before(userId, [f'0{rev}' for rev in productReviews])
             seen_table.check_if_review_shown_before(userId, [f'1{rev}' for rev in companyReviews])
             seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
             seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
-            t2 = time.time()
-            print('loop1: ', t2-t1)
+            # t2 = time.time()
+            # print('loop1: ', t2-t1)
         else:
             # if round == 1:
             #     try: return load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))[userId]
@@ -152,11 +152,11 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             
             # print('Questions recommendation')
             # check if questions are calculated before
-            t1 = time.time()
+            # t1 = time.time()
             try: users_MF_ques = load(open('recommender/collobarative/gen_MF_ques.pkl', 'rb'))
             except: users_MF_ques = {}
-            t2 = time.time()
-            print('file4: ', t2-t1)
+            # t2 = time.time()
+            # print('file4: ', t2-t1)
             
             if userId not in users_MF_ques.keys(): 
                 pques3,pq_spcs=filterQuetions(user=userId,ques1=pques1,sort=pq_sp1,filterType=2,ques2=pques2)
@@ -166,18 +166,18 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (pques3, pq_spcs) = users_MF_ques[userId]['pques']
                 (cques3, cq_spcs) = users_MF_ques[userId]['cques']
             
-            t1 = time.time()
+            # t1 = time.time()
             productQuestions = [f'2{ques}' for ques in pques3]
             productQuestions, pq_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, productQuestions, pq_spcs, num=PQ)
-            t2 = time.time()
-            print('loop2: ', t2-t1)
+            # t2 = time.time()
+            # print('loop2: ', t2-t1)
             total.extend(productQuestions); total_spaces.extend(pq_sp)
             
-            t1 = time.time()
+            # t1 = time.time()
             companyQuestions = [f'3{ques}' for ques in cques3]
             companyQuestions, cq_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, companyQuestions, cq_spcs, num=CQ)
-            t2 = time.time()
-            print('loop3: ', t2-t1)
+            # t2 = time.time()
+            # print('loop3: ', t2-t1)
             total.extend(companyQuestions); total_spaces.extend(cq_sp)
             
             users_MF_ques[userId] = {'pques': (prest, p_sp_rest), 'cques': (crest, c_sp_rest)}
@@ -199,11 +199,11 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         if items_interactions_existance_check and check_interactions_existance(userId, search_in='mobiles'):
             hates = Trackers(loadfile=True).getHatesReviews(userId)
     
-            t1 = time.time()
+            # t1 = time.time()
             try: users_MF_mobile_revs = load(open('recommender/collobarative/gen_MF_mobile_revs.pkl', 'rb'))
             except: users_MF_mobile_revs = {}
-            t2 = time.time()
-            print('file5: ', t2-t1)
+            # t2 = time.time()
+            # print('file5: ', t2-t1)
             
             if userId not in users_MF_mobile_revs.keys():
                 Precs = []; pr_sp = []; Crecs = []; cr_sp = []
@@ -238,17 +238,17 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (Precs, pr_sp) = users_MF_mobile_revs[userId]['prevs']
                 (Crecs, cr_sp) = users_MF_mobile_revs[userId]['crevs']
 
-            t1 = time.time()
+            # t1 = time.time()
             prevs, pr_spcs, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, Precs[1:], pr_sp, num=ROUND_NUM_OF_REVIEWS//10)
-            t2 = time.time()
-            print('loop4: ', t2-t1)
+            # t2 = time.time()
+            # print('loop4: ', t2-t1)
             productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_spcs)
             PR = PR - len(prevs)
 
-            t1 = time.time()
+            # t1 = time.time()
             crevs, cr_spcs, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, Crecs[1:], cr_sp, num=ROUND_NUM_OF_REVIEWS//10)
-            t2 = time.time()
-            print('loop5: ', t2-t1)
+            # t2 = time.time()
+            # print('loop5: ', t2-t1)
             companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_spcs)
             CR = CR - len(crevs)
             
@@ -263,27 +263,27 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         # check user item interactions existance
         if items_interactions_existance_check:
             # First Model recommend PR, CR
-            t1 = time.time()
+            # t1 = time.time()
             try: users_MF_revs = load(open('recommender/collobarative/gen_MF_revs.pkl', 'rb'))
             except: users_MF_revs = {}
-            t2 = time.time()
-            print('file6: ', t2-t1)
+            # t2 = time.time()
+            # print('file6: ', t2-t1)
             
             if userId in users_MF_revs.keys():
                 (prevs1, pr_sp1) = users_MF_revs[userId]['prevs']
                 (crevs1, cr_sp1) = users_MF_revs[userId]['crevs']
 
-            t1 = time.time()
+            # t1 = time.time()
             prevs4, pr_sp4, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, prevs1, pr_sp1, num=ROUND_NUM_OF_REVIEWS//10, known=productReviews)
-            t2 = time.time()
-            print('loop6: ', t2-t1)
+            # t2 = time.time()
+            # print('loop6: ', t2-t1)
             productReviews.extend(prevs4); total.extend(prevs4); total_spaces.extend(pr_sp4)
             PR = PR - len(prevs4)
             
-            t1 = time.time()
+            # t1 = time.time()
             crevs4, cr_sp4, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, crevs1, cr_sp1, num=ROUND_NUM_OF_REVIEWS//10, known=companyReviews)
-            t2 = time.time()
-            print('loop7: ', t2-t1)
+            # t2 = time.time()
+            # print('loop7: ', t2-t1)
             companyReviews.extend(crevs4); total.extend(crevs4); total_spaces.extend(cr_sp4)
             CR = CR - len(crevs4)
             
@@ -293,11 +293,11 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             # print(PR, CR, PQ, CQ)
             # print('--------------------------------------')
             # --------------------------------------------------
-            t1 = time.time()
+            # t1 = time.time()
             try: users_CR_revs = load(open('recommender/collobarative/gen_CR_revs.pkl', 'rb'))
             except: users_CR_revs = {}
-            t2 = time.time()
-            print('file7: ', t2-t1)
+            # t2 = time.time()
+            # print('file7: ', t2-t1)
             
             # print('CR_revs')
 
@@ -332,17 +332,17 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (product_recs, pr_sp) = users_CR_revs[userId]['prevs']
                 (company_recs, cr_sp) = users_CR_revs[userId]['crevs']
 
-            t1 = time.time()
+            # t1 = time.time()
             prevs, pr_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, product_recs, pr_sp, num=PR, known=productReviews)
-            t2 = time.time()
-            print('loop8: ', t2-t1)
+            # t2 = time.time()
+            # print('loop8: ', t2-t1)
             productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_sp)
             PR = PR - len(prevs)
 
-            t1 = time.time()
+            # t1 = time.time()
             crevs, cr_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, company_recs, cr_sp, num=CR, known=companyReviews)
-            t2 = time.time()
-            print('loop9: ', t2-t1)
+            # t2 = time.time()
+            # print('loop9: ', t2-t1)
             companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_sp)
             CR = CR - len(crevs)
             

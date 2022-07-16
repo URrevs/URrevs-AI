@@ -182,9 +182,9 @@ def start_training(request) -> JsonResponse:
                     except:
                         date =  MongoConnection().get_last_training_time()
                 
-                subprocess.call(["sudo /etc/init.d/redis-server start"], shell=True)
+                subprocess.call([START_REDIS], shell=True)
                 print('Start redis')
-                subprocess.call(["sudo systemctl start recommenderApiCelery.service"], shell=True)
+                subprocess.call([START_CELERY], shell=True)
                 print('Start celery succeeded')
                 print('start async task')
                 start_async.delay(date, first)
@@ -220,9 +220,9 @@ def stop_training(request) -> JsonResponse:
     if request.method == 'GET':
         if request.META.get('HTTP_X_API_KEY') == API_KEY_SECRET:
             try:
-                subprocess.call(["sudo systemctl stop recommenderApiCelery.service"], shell=True)
+                subprocess.call([STOP_CELERY], shell=True)
                 print('Stopping celery succeeded')
-                subprocess.call(["sudo /etc/init.d/redis-server stop"], shell=True)
+                subprocess.call([STOP_REDIS], shell=True)
                 print('Stopping redis succeeded')
                 response = {
                     'message': 'Training stoped'

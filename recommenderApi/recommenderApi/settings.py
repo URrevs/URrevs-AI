@@ -36,6 +36,12 @@ API_HOST = config("API_HOST", default="")
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', API_HOST]
 CSRF_TRUSTED_ORIGINS = [f'https://{config("API_HOST", default="")}']
 
+START_REDIS = config('START_REDIS', default="")
+START_CELERY = config('START_CELERY', default="")
+
+STOP_CELERY = config('STOP_CELERY', default="")
+STOP_REDIS = config('STOP_REDIS', default="")
+
 DAILY_ITEMS_QOUTA = config('DAILY_ITEMS_QOUTA', default=200, cast=int)
 ROUND_NUM_OF_REVIEWS = config('ROUND_NUM_OF_ITEMS', default=20, cast=int)
 REMOVE_FROM_SEEN_TABLE_AFTER_DAYS = config('REMOVE_FROM_SEEN_TABLE_AFTER_DAYS', default=5, cast=int)
