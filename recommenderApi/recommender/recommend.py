@@ -124,8 +124,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
         else:
             if round == 1:
-                round1 = load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))
-                try: return round1[userId]
+                try: return load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))[userId]
                 except: pass
             # load user items data
             (prevs1, pr_sp1, pques1, pq_sp1, crevs1, cr_sp1, cques1, cq_sp1) = MF_items[userId]
