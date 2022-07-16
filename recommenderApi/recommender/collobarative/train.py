@@ -206,7 +206,6 @@ def update_values(date: dt, first: bool = False):
                 sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
         print('updated user ratios')
         for item in items_trackers_file.interactions.keys():
-            print(item)
             update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
         print('updated counts')
         get_all_mobiles_have_reviews()
