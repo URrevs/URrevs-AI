@@ -3,7 +3,7 @@ from celery import task, shared_task
 from recommender.collobarative.train import train_and_update
 from recommender.mongoDB.getData import MongoConnection
 from recommender.sqliteDB.data import SQLite_Database
-from recommenderApi.imports import MongoClient, certifi, dt, ObjectId, dump, load
+from recommenderApi.imports import MongoClient, certifi, dt, ObjectId, dump, load, subprocess
 from recommenderApi.settings import MONGODB_LINK, MONGODB_NAME, ROUND_NUM_OF_REVIEWS
 from recommender.sqliteDB.data import SQLite_Database
 
@@ -21,6 +21,12 @@ def start_async(date, first):
     print('start async task')
     train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
+    try:
+        subprocess.call(["systemctl stop recommenderApiCelery.service"], shell=True)
+        print('Stopping celery succeeded')
+        subprocess.call(["/etc/init.d/redis-server stop"], shell=True)
+        print('Stopping redis succeeded')
+    except Exception as e: print('Failed to stop training services', e)
     return
 
 @shared_task

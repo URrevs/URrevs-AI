@@ -202,3 +202,5 @@ recommenderApi/recommender/collobarative/gen_MF_mobile_revs.pkl
 recommenderApi/recommender/collobarative/gen_MF_ques.pkl
 recommenderApi/recommender/collobarative/gen_MF_revs.pkl
 recommenderApi/recommender/collobarative/pques.pkl
+recommenderApi/recommender/collobarative/gen_round_1.pkl
+recommenderApi/recommender/collobarative/questionFilter.py

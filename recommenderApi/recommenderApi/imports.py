@@ -20,6 +20,7 @@ import sys
 from pyparsing import Or
 import requests
 import json
+import subprocess
 from recommenderApi.settings import *
 
 def enum(**enums):
