@@ -182,8 +182,11 @@ def start_training(request) -> JsonResponse:
                     except:
                         date =  MongoConnection().get_last_training_time()
                 
+                subprocess.call(["sudo /etc/init.d/redis-server start"], shell=True)
+                print('Start redis')
+                subprocess.call(["sudo systemctl start recommenderApiCelery.service"], shell=True)
+                print('Start celery succeeded')
                 print('start async task')
-                print(date)
                 start_async.delay(date, first)
                 # train_and_update(date, first=first)
                 response = {
