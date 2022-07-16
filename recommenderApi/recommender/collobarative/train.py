@@ -10,7 +10,9 @@ from recommender.gamification.grading import Grading
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, REMOVE_FROM_SEEN_TABLE_AFTER_DAYS, EVERY_ITERATION_EPOCHS_AMOUNT_INCREASE
 from recommenderApi.settings import MIN_ITEM, MAX_PREVIEW, MAX_CREVIEW, MAX_PQUESTION, MAX_CQUESTION
 from recommender.models import *
+from recommender.collobarative.anonymous import calc_anonymous_data 
 from recommender.reviews.reviewsRecommender import ReviewContentRecommender
+from recommender.recommend import recommend
 
 def get_max_n_liked_companies(mobiles: list):
     companies = []
@@ -204,6 +206,7 @@ def update_values(date: dt, first: bool = False):
                 sqlite.update_user_ratios(userId=user, PR=PR, CR=CR, PQ=PQ, CQ=CQ)
         print('updated user ratios')
         for item in items_trackers_file.interactions.keys():
+            print(item)
             update_counts(sqlite=sqlite, itemType=item[0], itemId=item[1:], val=items_trackers_file.interactions[item])
         print('updated counts')
         get_all_mobiles_have_reviews()
@@ -249,6 +252,20 @@ def update_values(date: dt, first: bool = False):
         dump(users, open('recommender/collobarative/gen_MF_revs.pkl', 'wb'))
         dump(users, open('recommender/collobarative/gen_CR_revs.pkl', 'wb'))
         print('old recommendation daily history erased')
+        print('generate first recommendation for every user')
+        if not first:
+            try:
+                users = {}
+                dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
+                sql = SQLite_Database()
+                users3 = items_trackers_file.getAllUsers()
+                for userId in users3:
+                    user = sql.get_user(id=userId)
+                    # print(userId, user.name)
+                    users[userId] = recommend(userId=userId, round=1, PR=user.PR, CR=user.CR, PQ=user.PQ, CQ=user.CQ)
+                dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
+            except Exception as e: print(e)
+        print('finished generating the first recommendations for all users')
         send_date(time)
         print('sent date')
     except Exception as e:
@@ -276,58 +293,30 @@ def check_engagement():
     print(df.value_counts().index.values)
     return len(df.value_counts().values) >= 10, df.value_counts().index.values
 
-def calc_anonymous_data():
-    sql = SQLite_Database()
-    items = []
-    cques = sql.get_answered_Cquestions(answer=True, limit=50)
-    pques = sql.get_answered_Pquestions(answer=True, limit=100-len(cques))
-    rest = 100 - len(pques) - len(cques)
-    if rest % 2 == 0: prevs = sql.get_Prevs(limit=50+rest//2)
-    else: prevs = sql.get_Prevs(limit=51+rest//2)
-    crevs = sql.get_Crevs(limit=50+rest//2)
-    items.extend(cques); items.extend(pques); items.extend(crevs); items.extend(prevs)
-    items.sort(key=lambda x: (-x[1], -x[2], -x[3], -x[4]))
-    counter = 0; iter = 0
-    pques = []; cques = []; prevs = []; crevs = []; total = []; final = []
-    for item in items:
-        total.append(item[0][1:])
-        if item[0][0] == '0': prevs.append(item[0][1:])
-        if item[0][0] == '1': crevs.append(item[0][1:])
-        if item[0][0] == '2': pques.append(item[0][1:])
-        if item[0][0] == '3': cques.append(item[0][1:])
-        counter += 1
-        if counter == ROUND_NUM_OF_REVIEWS: 
-            counter = 0
-            final.append([prevs, crevs, pques, cques, total])
-            pques = []; cques = []; prevs = []; crevs = []; total = []
-            iter += 1
-    dump(final, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
-    return final
-    # check, df = check_engagement()
-    # reviews = []
-    # count = 0
-    # if check:
-    #     count = (min([len(df), 200]) // ROUND_NUM_OF_REVIEWS) * ROUND_NUM_OF_REVIEWS
-    #     sqlite = SQLite_Database()
-    #     for id in df:
-    #         if id[0] == '0':
-    #             prev = sqlite.get_Preview(id = id[1:])
-    #             # After adding all prevs to db remove this condition
-    #             if prev != None:
-    #                 reviews.append([id, prev.likesCounter, prev.commentsCounter])
-    #         else:
-    #             crev = sqlite.get_Creview(id=id[1:])
-    #             # After adding all crevs to db remove this condition
-    #             if crev != None:
-    #                 reviews.append([id, crev.likesCounter, crev.commentsCounter])
-    #     reviews.sort(key=lambda x: (-x[1], -x[2]))
-    #     reviews = [reviews[i][0] for i in range(count)]
-    # reviews1 = []
-    # prevs = PReview.objects.all().order_by('-time')[:100 - count/2]
-    # crevs = CReview.objects.all().order_by('-time')[:100 - count/2]
-    # reviews1 = ([[f'0{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in prevs]\
-    #     + [[f'1{review.id}', len(review.pros.split())+len(review.cons.split()), review.time] for review in crevs])
-    # reviews1.sort(key=lambda x: (-x[2], -x[1]))
-    # reviews = reviews + [review[0] for review in reviews1]
-    # dump(reviews, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
-    # return reviews
+# def calc_anonymous_data():
+#     sql = SQLite_Database()
+#     items = []
+#     cques = sql.get_answered_Cquestions(answer=True, limit=50)
+#     pques = sql.get_answered_Pquestions(answer=True, limit=100-len(cques))
+#     rest = 100 - len(pques) - len(cques)
+#     if rest % 2 == 0: prevs = sql.get_Prevs(limit=50+rest//2)
+#     else: prevs = sql.get_Prevs(limit=51+rest//2)
+#     crevs = sql.get_Crevs(limit=50+rest//2)
+#     items.extend(cques); items.extend(pques); items.extend(crevs); items.extend(prevs)
+#     items.sort(key=lambda x: (-x[1], -x[2], -x[3], -x[4]))
+#     counter = 0; iter = 0
+#     pques = []; cques = []; prevs = []; crevs = []; total = []; final = []
+#     for item in items:
+#         total.append(item[0][1:])
+#         if item[0][0] == '0': prevs.append(item[0][1:])
+#         if item[0][0] == '1': crevs.append(item[0][1:])
+#         if item[0][0] == '2': pques.append(item[0][1:])
+#         if item[0][0] == '3': cques.append(item[0][1:])
+#         counter += 1
+#         if counter == ROUND_NUM_OF_REVIEWS: 
+#             counter = 0
+#             final.append([prevs, crevs, pques, cques, total])
+#             pques = []; cques = []; prevs = []; crevs = []; total = []
+#             iter += 1
+#     dump(final, open('recommender/collobarative/anonymous_data.pkl', 'wb'))
+#     return final

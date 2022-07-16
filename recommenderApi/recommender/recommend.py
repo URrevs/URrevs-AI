@@ -7,7 +7,7 @@ from recommender.collobarative.reviewTracker import Trackers
 from recommender.sqliteDB.data import SQLite_Database
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, DAILY_ITEMS_QOUTA
 from recommenderApi.imports import load, os, dump
-from recommender.collobarative.train import calc_anonymous_data
+from recommender.collobarative.anonymous import calc_anonymous_data
 
 def check_interactions_existance(userId: str, search_in: str = 'items'):
     if search_in == 'items':
@@ -123,6 +123,10 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
             seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
         else:
+            if round == 1:
+                round1 = load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))
+                try: return round1[userId]
+                except: pass
             # load user items data
             (prevs1, pr_sp1, pques1, pq_sp1, crevs1, cr_sp1, cques1, cq_sp1) = MF_items[userId]
             # load user mobiles items data
