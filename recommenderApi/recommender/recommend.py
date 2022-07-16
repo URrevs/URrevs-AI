@@ -8,6 +8,7 @@ from recommender.sqliteDB.data import SQLite_Database
 from recommenderApi.settings import ROUND_NUM_OF_REVIEWS, DAILY_ITEMS_QOUTA
 from recommenderApi.imports import load, os, dump
 from recommender.collobarative.anonymous import calc_anonymous_data
+import time
 
 def check_interactions_existance(userId: str, search_in: str = 'items'):
     if search_in == 'items':
@@ -97,7 +98,8 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     total = []
     total_spaces = []
     # print(PR, CR, PQ, CQ)
-        
+
+    t1 = time.time()    
     # first rounds
     if round <= (200//ROUND_NUM_OF_REVIEWS):
         # load MF items file
@@ -105,19 +107,30 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         except Exception as e:
             # print(e)
             MF_items = generate_MF_items_file()
+        t2 = time.time()
+        print('1: ', t2-t1)
+        t1 = time.time()
         # load MF mobiles file
         try: MF_mobiles = load(open('recommender\collobarative\MF_mobiles.pkl', 'rb'))
         except Exception as e:
             # print(e)
             MF_mobiles = generate_MF_mobiles_files()
         
+        t2 = time.time()
+        print('2: ', t2-t1)
+
         if userId not in MF_items.keys():
             # load all anonymous as it
             # print('Anonymous User')
             round = (round-1) % (200//ROUND_NUM_OF_REVIEWS) + 1
             if not os.path.isfile('recommender/collobarative/anonymous_data.pkl'): calc_anonymous_data()
+            
+            t1 = time.time()
             productReviews, companyReviews, productQuestions, companyQuestions, total =\
                     load(open('recommender/collobarative/anonymous_data.pkl', 'rb'))[round-1]
+            t2 = time.time()
+            print('3: ', t2-t1)
+
             seen_table.check_if_review_shown_before(userId, [f'0{rev}' for rev in productReviews])
             seen_table.check_if_review_shown_before(userId, [f'1{rev}' for rev in companyReviews])
             seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
@@ -134,8 +147,12 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             
             # print('Questions recommendation')
             # check if questions are calculated before
+            t1 = time.time()
             try: users_MF_ques = load(open('recommender/collobarative/gen_MF_ques.pkl', 'rb'))
             except: users_MF_ques = {}
+            t2 = time.time()
+            print('4: ', t2-t1)
+            
             if userId not in users_MF_ques.keys(): 
                 pques3,pq_spcs=filterQuetions(user=userId,ques1=pques1,sort=pq_sp1,filterType=2,ques2=pques2)
                 cques3,cq_spcs=filterQuetions(user=userId,ques1=cques1,sort=cq_sp1,filterType=3,ques2=cques2)
@@ -171,9 +188,12 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         if items_interactions_existance_check and check_interactions_existance(userId, search_in='mobiles'):
             hates = Trackers(loadfile=True).getHatesReviews(userId)
     
+            t1 = time.time()
             try: users_MF_mobile_revs = load(open('recommender/collobarative/gen_MF_mobile_revs.pkl', 'rb'))
             except: users_MF_mobile_revs = {}
-
+            t2 = time.time()
+            print('5: ', t2-t1)
+            
             if userId not in users_MF_mobile_revs.keys():
                 Precs = []; pr_sp = []; Crecs = []; cr_sp = []
                 if Preference != None:
@@ -226,8 +246,11 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         # check user item interactions existance
         if items_interactions_existance_check:
             # First Model recommend PR, CR
+            t1 = time.time()
             try: users_MF_revs = load(open('recommender/collobarative/gen_MF_revs.pkl', 'rb'))
             except: users_MF_revs = {}
+            t2 = time.time()
+            print('6: ', t2-t1)
             
             if userId in users_MF_revs.keys():
                 (prevs1, pr_sp1) = users_MF_revs[userId]['prevs']
@@ -247,8 +270,11 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             # print(PR, CR, PQ, CQ)
             # print('--------------------------------------')
             # --------------------------------------------------
+            t1 = time.time()
             try: users_CR_revs = load(open('recommender/collobarative/gen_CR_revs.pkl', 'rb'))
             except: users_CR_revs = {}
+            t2 = time.time()
+            print('7: ', t2-t1)
             
             # print('CR_revs')
 
