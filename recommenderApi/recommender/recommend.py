@@ -139,7 +139,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
             seen_table.check_if_review_shown_before(userId, [f'2{ques}' for ques in productQuestions])
             seen_table.check_if_review_shown_before(userId, [f'3{ques}' for ques in companyQuestions])
             t2 = time.time()
-            print('file3: ', t2-t1)
+            print('loop1: ', t2-t1)
         else:
             # if round == 1:
             #     try: return load(open('recommender/collobarative/gen_round_1.pkl', 'rb'))[userId]
@@ -166,12 +166,18 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (pques3, pq_spcs) = users_MF_ques[userId]['pques']
                 (cques3, cq_spcs) = users_MF_ques[userId]['cques']
             
+            t1 = time.time()
             productQuestions = [f'2{ques}' for ques in pques3]
             productQuestions, pq_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, productQuestions, pq_spcs, num=PQ)
+            t2 = time.time()
+            print('loop2: ', t2-t1)
             total.extend(productQuestions); total_spaces.extend(pq_sp)
             
+            t1 = time.time()
             companyQuestions = [f'3{ques}' for ques in cques3]
             companyQuestions, cq_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, companyQuestions, cq_spcs, num=CQ)
+            t2 = time.time()
+            print('loop3: ', t2-t1)
             total.extend(companyQuestions); total_spaces.extend(cq_sp)
             
             users_MF_ques[userId] = {'pques': (prest, p_sp_rest), 'cques': (crest, c_sp_rest)}
@@ -232,11 +238,17 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (Precs, pr_sp) = users_MF_mobile_revs[userId]['prevs']
                 (Crecs, cr_sp) = users_MF_mobile_revs[userId]['crevs']
 
+            t1 = time.time()
             prevs, pr_spcs, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, Precs[1:], pr_sp, num=ROUND_NUM_OF_REVIEWS//10)
+            t2 = time.time()
+            print('loop4: ', t2-t1)
             productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_spcs)
             PR = PR - len(prevs)
 
+            t1 = time.time()
             crevs, cr_spcs, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, Crecs[1:], cr_sp, num=ROUND_NUM_OF_REVIEWS//10)
+            t2 = time.time()
+            print('loop5: ', t2-t1)
             companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_spcs)
             CR = CR - len(crevs)
             
@@ -261,11 +273,17 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (prevs1, pr_sp1) = users_MF_revs[userId]['prevs']
                 (crevs1, cr_sp1) = users_MF_revs[userId]['crevs']
 
+            t1 = time.time()
             prevs4, pr_sp4, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, prevs1, pr_sp1, num=ROUND_NUM_OF_REVIEWS//10, known=productReviews)
+            t2 = time.time()
+            print('loop6: ', t2-t1)
             productReviews.extend(prevs4); total.extend(prevs4); total_spaces.extend(pr_sp4)
             PR = PR - len(prevs4)
             
+            t1 = time.time()
             crevs4, cr_sp4, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, crevs1, cr_sp1, num=ROUND_NUM_OF_REVIEWS//10, known=companyReviews)
+            t2 = time.time()
+            print('loop7: ', t2-t1)
             companyReviews.extend(crevs4); total.extend(crevs4); total_spaces.extend(cr_sp4)
             CR = CR - len(crevs4)
             
@@ -314,11 +332,17 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
                 (product_recs, pr_sp) = users_CR_revs[userId]['prevs']
                 (company_recs, cr_sp) = users_CR_revs[userId]['crevs']
 
+            t1 = time.time()
             prevs, pr_sp, prest, p_sp_rest = seen_table.check_if_review_shown_before(userId, product_recs, pr_sp, num=PR, known=productReviews)
+            t2 = time.time()
+            print('loop8: ', t2-t1)
             productReviews.extend(prevs); total.extend(prevs); total_spaces.extend(pr_sp)
             PR = PR - len(prevs)
 
+            t1 = time.time()
             crevs, cr_sp, crest, c_sp_rest = seen_table.check_if_review_shown_before(userId, company_recs, cr_sp, num=CR, known=companyReviews)
+            t2 = time.time()
+            print('loop9: ', t2-t1)
             companyReviews.extend(crevs); total.extend(crevs); total_spaces.extend(cr_sp)
             CR = CR - len(crevs)
             
