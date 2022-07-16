@@ -251,20 +251,20 @@ def update_values(date: dt, first: bool = False):
         dump(users, open('recommender/collobarative/gen_MF_revs.pkl', 'wb'))
         dump(users, open('recommender/collobarative/gen_CR_revs.pkl', 'wb'))
         print('old recommendation daily history erased')
-        print('generate first recommendation for every user')
-        if not first:
-            try:
-                users = {}
-                dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
-                sql = SQLite_Database()
-                users3 = items_trackers_file.getAllUsers()
-                for userId in users3:
-                    user = sql.get_user(id=userId)
-                    # print(userId, user.name)
-                    users[userId] = recommend(userId=userId, round=1, PR=user.PR, CR=user.CR, PQ=user.PQ, CQ=user.CQ)
-                dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
-            except Exception as e: print(e)
-        print('finished generating the first recommendations for all users')
+        # print('generate first recommendation for every user')
+        # if not first:
+        #     try:
+        #         users = {}
+        #         dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
+        #         sql = SQLite_Database()
+        #         users3 = items_trackers_file.getAllUsers()
+        #         for userId in users3:
+        #             user = sql.get_user(id=userId)
+        #             # print(userId, user.name)
+        #             users[userId] = recommend(userId=userId, round=1, PR=user.PR, CR=user.CR, PQ=user.PQ, CQ=user.CQ)
+        #         dump(users, open('recommender/collobarative/gen_round_1.pkl', 'wb'))
+        #     except Exception as e: print(e)
+        # print('finished generating the first recommendations for all users')
         send_date(time)
         print('sent date')
     except Exception as e:
