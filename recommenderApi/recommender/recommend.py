@@ -103,7 +103,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
     # first rounds
     if round <= (200//ROUND_NUM_OF_REVIEWS):
         # load MF items file
-        try: MF_items = load(open('recommender\collobarative\MF_items.pkl', 'rb'))
+        try: MF_items = load(open('recommender/collobarative/MF_items.pkl', 'rb'))
         except Exception as e:
             # print(e)
             MF_items = generate_MF_items_file()
@@ -113,7 +113,7 @@ def recommend(userId: str, round: int, PR: int, CR: int, PQ: int, CQ: int):
         t1 = time.time()
         # load MF mobiles file
         try: 
-            MF_mobiles = load(open('recommender\collobarative\MF_mobiles.pkl', 'rb'))
+            MF_mobiles = load(open('recommender/collobarative/MF_mobiles.pkl', 'rb'))
             print('try')
         except Exception as e:
             print('except', e)
