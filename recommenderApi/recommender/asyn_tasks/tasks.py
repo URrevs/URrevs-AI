@@ -22,9 +22,9 @@ def start_async(date, first):
     train_and_update(dt.fromisoformat(date), first=first)
     print('end async task')
     try:
-        subprocess.call(["systemctl stop recommenderApiCelery.service"], shell=True)
+        subprocess.call(["sudo systemctl stop recommenderApiCelery.service"], shell=True)
         print('Stopping celery succeeded')
-        subprocess.call(["/etc/init.d/redis-server stop"], shell=True)
+        subprocess.call(["sudo /etc/init.d/redis-server stop"], shell=True)
         print('Stopping redis succeeded')
     except Exception as e: print('Failed to stop training services', e)
     return
