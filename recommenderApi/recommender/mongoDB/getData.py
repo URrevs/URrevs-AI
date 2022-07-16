@@ -7,7 +7,7 @@ from recommender.mobiles1.getPhones import Similar_Phones
 class MongoConnection:
     def __init__(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
         self.db = self.connect_to_mongo(mongodb_link, mongodb_name)
-        print('connected to mongo')
+        # print('connected to mongo')
         return None
     
     def connect_to_mongo(self, mongodb_link: str = MONGODB_LINK, mongodb_name: str = MONGODB_NAME):
