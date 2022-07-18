@@ -80,7 +80,7 @@ class KernelMF(RecommenderBase):
         self.columns = columns
         return
 
-    def fit(self, X: pd.DataFrame, y: pd.Series):
+    def fit(self, X: pd.DataFrame, y: pd.Series, start: bool = False):
         """ 
         Decompose user-item rating matrix into thin matrices P and Q along with user and item bias vectors
 
@@ -91,17 +91,18 @@ class KernelMF(RecommenderBase):
         X = self._preprocess_data(X=X, y=y, type="fit")
         self.global_mean = X[self.columns[2]].mean()
 
-        # Initialize vector bias parameters
-        self.user_biases = np.zeros(self.n_users)
-        self.item_biases = np.zeros(self.n_items)
+        if start:
+            # Initialize vector bias parameters
+            self.user_biases = np.zeros(self.n_users)
+            self.item_biases = np.zeros(self.n_items)
 
-        # Initialize latent factor parameters of matrices P and Q
-        self.user_features = np.random.normal(
-            self.init_mean, self.init_sd, (self.n_users, self.n_factors)
-        )
-        self.item_features = np.random.normal(
-            self.init_mean, self.init_sd, (self.n_items, self.n_factors)
-        )
+            # Initialize latent factor parameters of matrices P and Q
+            self.user_features = np.random.normal(
+                self.init_mean, self.init_sd, (self.n_users, self.n_factors)
+            )
+            self.item_features = np.random.normal(
+                self.init_mean, self.init_sd, (self.n_items, self.n_factors)
+            )
 
         # Perform stochastic gradient descent
         (

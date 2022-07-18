@@ -32,7 +32,7 @@ class MatrixFactorization:
         try:
             self.split_data(path=path, test_size=test_size)
             if self.alert: print('training started')
-            self.matrix_fact.fit(self.X_train, self.y_train)
+            self.matrix_fact.fit(self.X_train, self.y_train, start=True)
             if self.alert: print('model trained successfully')
             return self.matrix_fact.train_rmse[-1]
         except Exception as e:
