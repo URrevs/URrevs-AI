@@ -103,6 +103,21 @@ class ReviewContentRecommender:
             recommendations.append(data.iloc[indices[i]].index)
         return recommendations[0].tolist(), distances[0].tolist()
 
+    def evaluate_rmse(self, rating: float, referenceId: str = '', recommend_type: str = 'product', 
+        n_recommendations: int = -1, items: list = [], ratings: list = [], known_items:list = []) -> float:
+        '''
+            function to evaluate the rmse
+
+            parameters: the number of recommendations
+            output: the rmse
+        '''
+        recommendations, distances = self.recommend(referenceId=referenceId, recommend_type=recommend_type, n_recommendations=n_recommendations, 
+            items=items, known_items=known_items)
+        rmse = 0
+        for i in range(len(recommendations)):
+            rmse += (ratings[i] - distances[i]*rating)**2 / len(recommendations)
+        return rmse**0.5
+
 # model = ReviewContentRecommender()
 # model.preprocessing(file_name='/recommender/static/data/reviews.xlsx', path='/recommender/static/data/')
 # recs, spaces = model.recommend(3, 9)
