@@ -95,7 +95,7 @@ class ReviewContentRecommender:
             data = data[~data.index.isin(known_items)]
             
         if n_recommendations == -1: n_recommendations = data.shape[0]-1 # len(items)-1
-        nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=n_recommendations+1, algorithm='ball_tree')
+        nbrs: NearestNeighbors = NearestNeighbors(n_neighbors=n_recommendations+1, metric='cosine', algorithm='auto')
         nbrs.fit(data.values)
         distances, indices = nbrs.kneighbors(data.loc[referenceId, :].values.reshape(1, -1))
         recommendations = []
