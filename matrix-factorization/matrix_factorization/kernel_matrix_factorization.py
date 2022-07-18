@@ -5,11 +5,7 @@ import pandas as pd
 
 from .kernels import (
     kernel_linear,
-    kernel_sigmoid,
-    kernel_rbf,
     kernel_linear_sgd_update,
-    kernel_sigmoid_sgd_update,
-    kernel_rbf_sgd_update,
 )
 from .recommender_base import RecommenderBase
 
@@ -25,8 +21,6 @@ class KernelMF(RecommenderBase):
     Arguments:
         n_factors {int} -- The number of latent factors in matrices P and Q (default: {100})
         n_epochs {int} -- Number of epochs to train for (default: {100})
-        kernel {str} -- Kernel function to use between user and item features. Options are 'linear', 'logistic' or 'rbf'. (default: {'linear'})
-        gamma {str or float} -- Kernel coefficient for 'rbf'. Ignored by other kernels. If 'auto' is used then will be set to 1/n_factors. (default: 'auto')
         reg {float} -- Regularization parameter lambda for Tikhonov regularization (default: {0.01})
         lr {float} -- Learning rate alpha for gradient optimization step (default: {0.01})
         init_mean {float} -- Mean of normal distribution to use for initializing parameters (default: {0})
@@ -63,8 +57,8 @@ class KernelMF(RecommenderBase):
         max_rating: int = 5,
         verbose: int = 1,
     ):
-        if kernel not in ("linear", "sigmoid", "rbf"):
-            raise ValueError("Kernel must be one of linear, sigmoid, or rbf")
+        if kernel not in ("linear"):
+            raise ValueError("Kernel must be one  linear")
 
         super().__init__(min_rating=min_rating, max_rating=max_rating, verbose=verbose)
 
@@ -143,7 +137,7 @@ class KernelMF(RecommenderBase):
             return []
 
         X = self._preprocess_data(X=X, type="predict")
-
+        
         # Get predictions
         predictions, predictions_possible = _predict(
             X=X.to_numpy(),
@@ -262,8 +256,6 @@ def _calculate_rmse(
         item_features (np.ndarray): Item features matrix Q of size (n_items, n_factors)
         min_rating (float): Minimum possible rating
         max_rating (float): Maximum possible rating
-        kernel (str): Kernel type. Possible options are "linear", "sigmoid" or "rbf" kernel
-        gamma (float): Kernel coefficient only for "rbf" kernel
 
     Returns:
         rmse [float]: Root mean squared error
@@ -289,25 +281,9 @@ def _calculate_rmse(
                 item_feature_vec=item_feature_vec,
             )
 
-        elif kernel == "sigmoid":
-            rating_pred = kernel_sigmoid(
-                global_mean=global_mean,
-                user_bias=user_bias,
-                item_bias=item_bias,
-                user_feature_vec=user_feature_vec,
-                item_feature_vec=item_feature_vec,
-                a=min_rating,
-                c=max_rating - min_rating,
-            )
+       
 
-        elif kernel == "rbf":
-            rating_pred = kernel_rbf(
-                user_feature_vec=user_feature_vec,
-                item_feature_vec=item_feature_vec,
-                gamma=gamma,
-                a=min_rating,
-                c=max_rating - min_rating,
-            )
+        
 
         # Calculate error
         errors[i] = rating - rating_pred
@@ -347,8 +323,7 @@ def _sgd(
         user_features {numpy array} -- Start matrix P of user features of shape (n_users, n_factors)
         item_features {numpy array} -- Start matrix Q of item features of shape (n_items, n_factors)
         n_epochs {int} -- Number of epochs to run
-        kernel {str} -- Kernel function to use between user and item features. Options are 'linear', 'logistic', and 'rbf'. 
-        gamma {float} -- Kernel coefficient for 'rbf'. Ignored by other kernels. 
+        kernel {str} -- Kernel function to use between user and item features. Options are 'linear'. 
         lr {float} -- Learning rate alpha
         reg {float} -- Regularization parameter lambda for Frobenius norm
         min_rating {float} -- Minimum possible rating
@@ -390,39 +365,9 @@ def _sgd(
                     update_item_params=update_item_params,
                 )
 
-            elif kernel == "sigmoid":
-                kernel_sigmoid_sgd_update(
-                    user_id=user_id,
-                    item_id=item_id,
-                    rating=rating,
-                    global_mean=global_mean,
-                    user_biases=user_biases,
-                    item_biases=item_biases,
-                    user_features=user_features,
-                    item_features=item_features,
-                    lr=lr,
-                    reg=reg,
-                    a=min_rating,
-                    c=max_rating - min_rating,
-                    update_user_params=update_user_params,
-                    update_item_params=update_item_params,
-                )
+          
 
-            elif kernel == "rbf":
-                kernel_rbf_sgd_update(
-                    user_id=user_id,
-                    item_id=item_id,
-                    rating=rating,
-                    user_features=user_features,
-                    item_features=item_features,
-                    lr=lr,
-                    reg=reg,
-                    gamma=gamma,
-                    a=min_rating,
-                    c=max_rating - min_rating,
-                    update_user_params=update_user_params,
-                    update_item_params=update_item_params,
-                )
+           
 
         # Calculate error and print
         rmse = _calculate_rmse(
@@ -471,8 +416,7 @@ def _predict(
         item_features {np.ndarray} -- Item features matrix Q of shape (n_items, n_factors)
         min_rating {int} -- Lowest rating possible
         max_rating {int} -- Highest rating possible
-        kernel {str} -- Kernel function. Options are 'linear', 'sigmoid', and 'rbf'
-        gamma {float} -- Kernel coefficient for 'rbf' only
+        kernel {str} -- Kernel function. defult is 'linear'
         bound_ratings (bool): Whether to bound ratings in range [min_rating, max_rating] (default: True)
 
     Returns:
@@ -497,7 +441,7 @@ def _predict(
         item_feature_vec = (
             item_features[item_id, :] if item_known else np.zeros(n_factors)
         )
-
+       
         # Calculate predicted rating given kernel
         if kernel == "linear":
             rating_pred = kernel_linear(
@@ -508,25 +452,8 @@ def _predict(
                 item_feature_vec=item_feature_vec,
             )
 
-        elif kernel == "sigmoid":
-            rating_pred = kernel_sigmoid(
-                global_mean=global_mean,
-                user_bias=user_bias,
-                item_bias=item_bias,
-                user_feature_vec=user_feature_vec,
-                item_feature_vec=item_feature_vec,
-                a=min_rating,
-                c=max_rating - min_rating,
-            )
-
-        elif kernel == "rbf":
-            rating_pred = kernel_rbf(
-                user_feature_vec=user_feature_vec,
-                item_feature_vec=item_feature_vec,
-                gamma=gamma,
-                a=min_rating,
-                c=max_rating - min_rating,
-            )
+       
+       
 
         # Bound ratings to min and max rating range
         if bound_ratings:

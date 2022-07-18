@@ -18,7 +18,7 @@ class BaselineModel(RecommenderBase):
           for estimating the explicit rating for a given user and item 
 
     Arguments:
-        method: {str} -- Method to estimate parameters. Can be one of 'sgd' or 'als' (default: {'sgd'})
+        method: {str} -- Method to estimate parameters. Can be  'sgd' 
         n_epochs {int} -- Number of epochs to train for (default: {100})
         reg {float} -- Lambda parameter for L2 regularization (default: {1})
         lr {float} -- Learning rate for gradient optimization step (default: {0.01})
@@ -49,8 +49,8 @@ class BaselineModel(RecommenderBase):
         verbose=1,
     ):
         # Check inputs
-        if method not in ("sgd", "als"):
-            raise ValueError('Method param must be either "sgd" or "als"')
+        if method not in ("sgd"):
+            raise ValueError('Method param must be either "sgd" ')
 
         super().__init__(min_rating=min_rating, max_rating=max_rating, verbose=verbose)
 
@@ -88,16 +88,7 @@ class BaselineModel(RecommenderBase):
                 verbose=self.verbose,
             )
 
-        elif self.method == "als":
-            self.user_biases, self.item_biases, self.train_rmse = _als(
-                X=X.to_numpy(),
-                global_mean=self.global_mean,
-                user_biases=self.user_biases,
-                item_biases=self.item_biases,
-                n_epochs=self.n_epochs,
-                reg=self.reg,
-                verbose=self.verbose,
-            )
+    
 
         return self
 
@@ -280,86 +271,6 @@ def _sgd(
     return user_biases, item_biases, train_rmse
 
 
-@nb.njit()
-def _als(
-    X: np.ndarray,
-    global_mean: float,
-    user_biases: np.ndarray,
-    item_biases: np.ndarray,
-    n_epochs: int,
-    reg: float,
-    verbose: int,
-) -> Tuple[np.ndarray, np.ndarray, list]:
-    """
-    Performs Alternating Least Squares to estimate the user_biases and item_biases. For every epoch, the item biases are held constant while
-    solving directly for the user biases parameters using a closed form equation. Then the user biases parameters is held constant and the same
-    is done for the item biases. This can be derived easily and is given in the lecture here https://www.youtube.com/watch?v=gCaOa3W9kM0&t=32m55s
-    which is also similar to the implementation in Surprise.
-
-    Arguments:
-        X {numpy array} -- User-item rating matrix
-        global_mean {float} -- Global mean of all ratings
-        user_biases {numpy array} -- User biases vector of shape (n_users, 1)
-        item_biases {numpy array} -- Item biases vector of shape (n_items, 1)
-        n_epochs {int} -- Number of epochs to run
-        reg {float} -- Regularization parameter lambda for Frobenius norm
-        verbose {int} -- Verbosity when fitting. 0 for nothing and 1 for printing epochs
-
-    Returns:
-        user_biases [np.ndarray] -- Updated user_biases vector
-        item_biases [np.ndarray] -- Updated item_bases vector
-        train_rmse -- Training rmse values
-    """
-    n_users = user_biases.shape[0]
-    n_items = item_biases.shape[0]
-    train_rmse = []
-
-    # Get counts of all users and items
-    user_counts = np.zeros(n_users)
-    item_counts = np.zeros(n_items)
-    for i in range(X.shape[0]):
-        user_id, item_id = int(X[i, 0]), int(X[i, 1])
-        user_counts[user_id] += 1
-        item_counts[item_id] += 1
-
-    # For each epoch optimize User biases, and then Item biases
-    for epoch in range(n_epochs):
-
-        # Update user bias parameters
-        user_biases = np.zeros(n_users)
-
-        # Iterate through all user-item ratings
-        for i in range(X.shape[0]):
-            user_id, item_id, rating = int(X[i, 0]), int(X[i, 1]), X[i, 2]
-            user_biases[user_id] += rating - global_mean - item_biases[item_id]
-
-        # Set user bias estimation
-        user_biases = user_biases / (reg + user_counts)
-
-        # Update item bias parameters
-        item_biases = np.zeros(n_items)
-
-        # Iterate through all user-item ratings
-        for i in range(X.shape[0]):
-            user_id, item_id, rating = int(X[i, 0]), int(X[i, 1]), X[i, 2]
-            item_biases[item_id] += rating - global_mean - user_biases[user_id]
-
-        # Set item bias estimation
-        item_biases = item_biases / (reg + item_counts)
-
-        # Calculate error and print
-        rmse = _calculate_rmse(
-            X=X,
-            global_mean=global_mean,
-            user_biases=user_biases,
-            item_biases=item_biases,
-        )
-        train_rmse.append(rmse)
-
-        if verbose == 1:
-            print("Epoch ", epoch + 1, "/", n_epochs, " -  train_rmse:", rmse)
-
-    return user_biases, item_biases, train_rmse
 
 
 @nb.njit()
